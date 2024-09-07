@@ -9,6 +9,7 @@ import {Button} from "@/components/ui/button";
 interface Context {
   state: {
     cart: Cart;
+    cartList: [string, CartItem][];
     total: number;
     quantity: number;
   };
@@ -24,6 +25,9 @@ const CartContext = createContext({} as Context);
 export function CartProviderClient({children}: {children: React.ReactNode}) {
   const [cart, setCart] = useState<Cart>(() => new Map());
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
+
+  const cartList = useMemo(() => Array.from(cart), [cart]);
+
   const total = useMemo(
     () => Array.from(cart.values()).reduce((acc, i) => acc + i.price, 0),
     [cart],
@@ -60,7 +64,10 @@ export function CartProviderClient({children}: {children: React.ReactNode}) {
     [cart],
   );
 
-  const state = useMemo(() => ({cart, total, quantity}), [cart, total, quantity]);
+  const state = useMemo(
+    () => ({cart, cartList, total, quantity}),
+    [cart, cartList, total, quantity],
+  );
   const actions = useMemo(
     () => ({addItem, removeItem, updateItem}),
     [addItem, removeItem, updateItem],
@@ -95,14 +102,6 @@ export function CartProviderClient({children}: {children: React.ReactNode}) {
             </Button>
           </div>
         )}
-        {isCartOpen ? (
-          <article>
-            <header>opened</header>
-            <footer>
-              <Button onClick={() => setIsCartOpen(false)}>close</Button>
-            </footer>
-          </article>
-        ) : null}
       </>
     </CartContext.Provider>
   );
