@@ -1,6 +1,8 @@
 import type {Metadata} from "next";
 
-import Link from "next/link";
+import {STORE_DATA} from "@/modules/store";
+import {InstagramIcon, WhatsappIcon} from "@/components/icons";
+import {CartProviderClient} from "@/modules/cart";
 
 import "./globals.css";
 
@@ -14,9 +16,48 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
     <html lang="en">
       <body className="container m-auto grid min-h-screen grid-rows-[auto,1fr,auto] bg-background px-4 font-sans antialiased">
         <header className="text-xl font-bold leading-[4rem]">
-          <Link href="/">bandidasburger-delivery</Link>
+          <img alt="Banner de Bandidas Burger" src="/assets/banner.jpg" />
+          <div>
+            <div className="-mt-20 rounded-full p-1 sm:-mt-12">
+              <img
+                alt="Avatar de Bandidas Burger"
+                className="h-32 w-32 min-w-[128px] rounded-full border-8 border-background"
+                src="/assets/avatar.jpg"
+              />
+            </div>
+            <div>
+              <div>
+                <p>{STORE_DATA.title}</p>
+                <p>{STORE_DATA.subtitle}</p>
+              </div>
+              <div className="flex gap-2">
+                <a
+                  aria-label="Instagram"
+                  href={STORE_DATA.instagram}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-50 text-black dark:text-white">
+                    <InstagramIcon />
+                  </div>
+                </a>
+                <a
+                  aria-label="WhatsApp"
+                  href={STORE_DATA.whatsapp}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-50 text-black dark:text-white">
+                    <WhatsappIcon />
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
         </header>
-        <main className="py-8">{children}</main>
+        <main className="py-8">
+          <CartProviderClient>{children}</CartProviderClient>
+        </main>
         <footer className="text-center leading-[4rem] opacity-70">
           © {new Date().getFullYear()} bandidasburger-delivery
         </footer>

@@ -21,7 +21,7 @@ interface Context {
 
 const CartContext = createContext({} as Context);
 
-export default function CartProviderClient({children}: {children: React.ReactNode}) {
+export function CartProviderClient({children}: {children: React.ReactNode}) {
   const [cart, setCart] = useState<Cart>(() => new Map());
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
   const total = useMemo(
@@ -77,7 +77,8 @@ export default function CartProviderClient({children}: {children: React.ReactNod
               className="m-auto w-full px-4 shadow-lg sm:w-fit"
               data-testid="show-cart"
               size="lg"
-              variant="brand"
+              type="button"
+              variant="ghost"
               onClick={() => {
                 setIsCartOpen(true);
               }}
