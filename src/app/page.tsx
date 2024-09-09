@@ -19,7 +19,16 @@ export default function HomePage() {
   }
 
   function handleRemoveItem(id: string, oldCartItem: CartItem) {
-    const newItem: CartItem = {...oldCartItem, quantity: oldCartItem.quantity - 1};
+    if (oldCartItem.quantity == 1) removeItem(id);
+    else {
+      const newItem: CartItem = {...oldCartItem, quantity: oldCartItem.quantity - 1};
+
+      updateItem(id, newItem);
+    }
+  }
+
+  function handleaddItem(id: string, oldCartItem: CartItem) {
+    const newItem: CartItem = {...oldCartItem, quantity: oldCartItem.quantity + 1};
 
     updateItem(id, newItem);
   }
@@ -53,6 +62,7 @@ export default function HomePage() {
                   <p>{product.title}</p>
                   <p>{product.quantity}</p>
                   <Button onClick={() => handleRemoveItem(cartId, product)}>-</Button>
+                  <Button onClick={() => handleaddItem(cartId, product)}>+</Button>
                 </li>
               ))}
             </ul>
