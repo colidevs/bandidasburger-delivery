@@ -1,12 +1,11 @@
 "use client";
 
-import {stringify} from "querystring";
-
 import {useState} from "react";
 
 import {PRODUCTS, type Product} from "@/modules/product";
 import {useCart, type CartItem} from "@/modules/cart";
 import {Button} from "@/components/ui/button";
+import {STORE_DATA} from "@/modules/store";
 
 export default function HomePage() {
   //* DISCARD `_` Cuando no usamos algo de lo que se nos esta proveyendo, es una forma estandar de decir ignorar
@@ -30,7 +29,31 @@ export default function HomePage() {
   function handleaddItem(id: string, oldCartItem: CartItem) {
     const newItem: CartItem = {...oldCartItem, quantity: oldCartItem.quantity + 1};
 
-    updateItem(id, newItem);
+    addItem(id, newItem);
+  }
+
+  function handleOrderProducts() {
+    const mensaje = `*Pedido:*
+* Perversa - $8.000
+* Bandolera - $8.000
+
+--
+
+*Datos:*
+* Forma de pago: Efectivo
+* Dirección de envío: Los Naranjos 93
+* Con cuanto abonas: $20.000* Pedido a nombre de: Federico Di Napoli
+
+--
+
+*Total: $16.000*
+*Vuelto: $4.000*`;
+
+    const phoneNumber = STORE_DATA.phone;
+
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(mensaje)}`;
+
+    window.open(whatsappUrl, "_blank");
   }
 
   return (
@@ -50,26 +73,29 @@ export default function HomePage() {
         ))}
       </ul>
       <aside className="w-4xl border p-8">
-        {cart.size !== 0 ? (
-          <article>
-            <h2>Carrito!</h2>
+        <div>
+          {cart.size !== 0 ? (
+            <article>
+              <h2>Carrito!</h2>
 
-            <ul className="flex flex-col gap-4">
-              {cartList.map(([cartId, product]) => (
-                // ITEM DEL CARRITO
+              <ul className="flex flex-col gap-4">
+                {cartList.map(([cartId, product]) => (
+                  // ITEM DEL CARRITO
 
-                <li key={crypto.randomUUID()} className="border p-2">
-                  <p>{product.title}</p>
-                  <p>{product.quantity}</p>
-                  <Button onClick={() => handleRemoveItem(cartId, product)}>-</Button>
-                  <Button onClick={() => handleaddItem(cartId, product)}>+</Button>
-                </li>
-              ))}
-            </ul>
-          </article>
-        ) : (
-          <p>No hay productos</p>
-        )}
+                  <li key={crypto.randomUUID()} className="border p-2">
+                    <p>{product.title}</p>
+                    <p>{product.quantity}</p>
+                    <Button onClick={() => handleRemoveItem(cartId, product)}>-</Button>
+                    <Button onClick={() => handleaddItem(cartId, product)}>+</Button>
+                  </li>
+                ))}
+              </ul>
+            </article>
+          ) : (
+            <p>No hay productos</p>
+          )}
+        </div>
+        <button onClick={() => handleOrderProducts()}>Finalizar Pedido </button>
       </aside>
     </section>
   );
