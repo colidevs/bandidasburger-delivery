@@ -29,7 +29,7 @@ export function CartProviderClient({children}: {children: React.ReactNode}) {
   const cartList = useMemo(() => Array.from(cart), [cart]);
 
   const total = useMemo(
-    () => Array.from(cart.values()).reduce((acc, i) => acc + i.price, 0),
+    () => Array.from(cart.values()).reduce((acc, i) => acc + i.quantity * i.price, 0),
     [cart],
   );
   const quantity = useMemo(

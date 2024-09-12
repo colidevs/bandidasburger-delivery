@@ -9,7 +9,7 @@ import {STORE_DATA} from "@/modules/store";
 
 export default function HomePage() {
   //* DISCARD `_` Cuando no usamos algo de lo que se nos esta proveyendo, es una forma estandar de decir ignorar
-  const [{cart, cartList}, {addItem, removeItem, updateItem}] = useCart();
+  const [{cart, cartList, total}, {addItem, removeItem, updateItem}] = useCart();
   const [selected, setSelected] = useState<Product>();
 
   function handleClick(product: Product) {
@@ -33,25 +33,26 @@ export default function HomePage() {
   }
 
   function handleOrderProducts() {
-    const mensaje = `*Pedido:*
-* Perversa - $8.000
-* Bandolera - $8.000
+    const products = cartList.map((burga) => burga[1]);
 
---
+    console.log(products);
 
-*Datos:*
+    const mensaje =
+      `*Pedido:*\n` +
+      products
+        .map((burga) => {
+          return `*${burga.title} (${burga.quantity}) - ${burga.quantity * burga.price}`;
+        })
+        .join("\n") +
+      `\n\n--\n\n*Datos:*
 * Forma de pago: Efectivo
 * Dirección de envío: Los Naranjos 93
-* Con cuanto abonas: $20.000* Pedido a nombre de: Federico Di Napoli
+* Con cuanto abonas: $20.000* Pedido a nombre de: Federico Di Napoli\n\n--\n\n*Total: $${total}*
+*Vuelto: $${20000 - total}*`;
 
---
+    console.log(mensaje);
 
-*Total: $16.000*
-*Vuelto: $4.000*`;
-
-    const phoneNumber = STORE_DATA.phone;
-
-    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(mensaje)}`;
+    const whatsappUrl = `https://wa.me/${STORE_DATA.phone}?text=${encodeURIComponent(mensaje)}`;
 
     window.open(whatsappUrl, "_blank");
   }
