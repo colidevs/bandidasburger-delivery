@@ -1,7 +1,8 @@
 import type {Metadata} from "next";
 
+import {FaInstagram, FaWhatsapp} from "react-icons/fa";
+
 import {STORE_DATA} from "@/modules/store";
-import {InstagramIcon, WhatsappIcon} from "@/components/icons";
 import {CartProviderClient} from "@/modules/cart";
 
 import "./globals.css";
@@ -38,7 +39,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
                   target="_blank"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-50 text-black dark:text-white">
-                    <InstagramIcon />
+                    <FaInstagram size={24} />
                   </div>
                 </a>
                 <a
@@ -48,7 +49,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
                   target="_blank"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-50 text-black dark:text-white">
-                    <WhatsappIcon />
+                    <FaWhatsapp size={24} />
                   </div>
                 </a>
               </div>
