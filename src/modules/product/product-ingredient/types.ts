@@ -1,4 +1,4 @@
-export interface productIngredient {
+export interface ProductIngredient {
   ingredientId: number;
   quantity: number;
 }

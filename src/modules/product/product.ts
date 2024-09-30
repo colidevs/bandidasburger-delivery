@@ -9,7 +9,7 @@ export const PRODUCTS: Product[] = [
     ingredients: [
       {ingredientId: 2, quantity: 1},
       {ingredientId: 3, quantity: 2},
-      {ingredientId: 7, quantity: 1},
+      {ingredientId: 8, quantity: 1},
     ],
     image: "/assets/products/01.jpg",
     price: 8000,
@@ -24,7 +24,7 @@ export const PRODUCTS: Product[] = [
       {ingredientId: 3, quantity: 4},
       {ingredientId: 4, quantity: 1},
       {ingredientId: 6, quantity: 1},
-      {ingredientId: 7, quantity: 1},
+      {ingredientId: 8, quantity: 1},
     ],
     image: "/assets/products/02.jpg",
     price: 9500,
@@ -46,7 +46,7 @@ export const PRODUCTS: Product[] = [
     ingredients: [
       {ingredientId: 3, quantity: 1},
       {ingredientId: 4, quantity: 1},
-      {ingredientId: 7, quantity: 1},
+      {ingredientId: 8, quantity: 1},
     ],
     image: "/assets/products/07.jpg",
     price: 6000,
