@@ -6,4 +6,5 @@ export interface Store {
   instagram: string;
   whatsapp: string;
   phone: string;
+  envio: number;
 }
