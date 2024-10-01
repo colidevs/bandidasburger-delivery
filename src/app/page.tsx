@@ -4,7 +4,7 @@ import {useState} from "react";
 
 import {PRODUCTS, type Product} from "@/modules/product";
 import {INGREDIENTS, type Ingredient} from "@/modules/product/ingredients";
-import {type ProductIngredient} from "@/modules/product/product-ingredient";
+import {PROD_INGR, type ProductIngredient} from "@/modules/product/product-ingredient";
 import {useCart, type CartItem} from "@/modules/cart";
 import {Button} from "@/components/ui/button";
 
@@ -13,7 +13,9 @@ export default function HomePage() {
   const [{cart, cartList, total}, {addItem, removeItem, updateItem}] = useCart();
   const [selected, setSelected] = useState<Product>();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [selectedIngredients, setSelectedIngredients] = useState<Ingredient[]>([]);
+  const [selectedProductIngredients, setSelectedProductIngredients] = useState<
+    {ingredientId: number; quantity: number}[]
+  >([]);
   const [paymentMethod, setPaymentMethod] = useState<string>();
   const [paymentAmount, setPaymentAmount] = useState<string>();
   const [lastPaymentAmount, setLastPaymentAmount] = useState<string>();
@@ -23,9 +25,19 @@ export default function HomePage() {
     "Ingresa con cuánto abonas",
   );
 
+  function getProductIngredients(productId: number): {ingredientId: number; quantity: number}[] {
+    const productIngr = PROD_INGR?.find((prod) => prod.productId === productId);
+
+    return productIngr?.ingredients || [];
+  }
+
   function handleClickItem(product: Product) {
     addItem(crypto.randomUUID(), {...product, quantity: 1});
     setSelectedProduct(product);
+
+    const ingredients = getProductIngredients(product.id);
+
+    setSelectedProductIngredients(ingredients);
   }
 
   function handleAddItem(id: string, oldCartItem: CartItem) {
@@ -50,13 +62,10 @@ export default function HomePage() {
       setPaymentAmount(undefined);
     } else {
       setPaymentAmount(lastPaymentAmount);
-      if (lastPaymentAmount !== "0" && lastPaymentAmount !== undefined) {
-        setPaymentAmountPlaceholder(lastPaymentAmount?.toString());
-      } else {
-        setPaymentAmountPlaceholder("Ingresa con cuánto abonas");
-      }
+      setPaymentAmountPlaceholder(
+        lastPaymentAmount !== undefined ? lastPaymentAmount : "Ingresa con cuánto abonas",
+      );
     }
-
     setPaymentMethod(evt.target.value);
   }
 
@@ -74,56 +83,37 @@ export default function HomePage() {
     setOrderOwner(evt.target.value);
   }
 
-  function handleIngredientSelectChange(productIngredientId: number, newIngredientId: number) {
-    if (!selectedProduct) return;
-
+  function handleIngredientSelectChange(oldIngredientId: number, newIngredientId: number) {
     const newIngredient = INGREDIENTS.find((i) => i.id === newIngredientId);
 
     if (!newIngredient) return;
 
-    const updatedIngredients = selectedProduct.ingredients?.map((productIngredient) => {
-      if (productIngredient.ingredientId === productIngredientId) {
-        const currentQuantity = productIngredient.quantity;
-        const newQuantity =
-          currentQuantity > newIngredient.maxQuantity ? newIngredient.maxQuantity : currentQuantity;
+    const updatedIngredients = selectedProductIngredients.map((ingredient) =>
+      ingredient.ingredientId === oldIngredientId
+        ? {
+            ingredientId: newIngredientId,
+            quantity: Math.min(ingredient.quantity, newIngredient.maxQuantity),
+          }
+        : ingredient,
+    );
 
-        return {...productIngredient, ingredientId: newIngredientId, quantity: newQuantity};
-      }
-
-      return productIngredient;
-    });
-
-    if (updatedIngredients) {
-      setSelectedProduct({
-        ...selectedProduct,
-        ingredients: updatedIngredients,
-      });
-    }
+    setSelectedProductIngredients(updatedIngredients);
   }
 
   function handleIngredientQuantityChange(ingredientId: number, newQuantity: number) {
-    if (!selectedProduct) return;
-
-    const updatedIngredients = selectedProduct.ingredients?.map((productIngredient) =>
-      productIngredient.ingredientId === ingredientId
-        ? {...productIngredient, quantity: newQuantity}
-        : productIngredient,
+    const updatedIngredients = selectedProductIngredients.map((ingredient) =>
+      ingredient.ingredientId === ingredientId
+        ? {...ingredient, quantity: newQuantity}
+        : ingredient,
     );
 
-    if (updatedIngredients) {
-      setSelectedProduct({
-        ...selectedProduct,
-        ingredients: updatedIngredients,
-      });
-    }
+    setSelectedProductIngredients(updatedIngredients);
   }
 
-  function getIngredientQuantity(product: Product, ingredientId: number) {
-    const productIngredient = product.ingredients?.find(
-      (ingredient) => ingredient.ingredientId === ingredientId,
-    );
+  function getIngredientQuantity(ingredientId: number) {
+    const ingredient = selectedProductIngredients.find((i) => i.ingredientId === ingredientId);
 
-    return productIngredient ? productIngredient.quantity : 0;
+    return ingredient ? ingredient.quantity : 0;
   }
 
   function getSelectableOptions(type: string) {
@@ -291,18 +281,35 @@ export default function HomePage() {
 
           <div className="mt-2">
             <h4 className="text-md font-semibold">Ingredientes</h4>
-            {selectedProduct.ingredients?.map((productIngredient) => {
+            {selectedProductIngredients.map((productIngredient) => {
               const ingredient = INGREDIENTS.find((i) => i.id === productIngredient.ingredientId);
 
               if (!ingredient) return null;
 
-              const quantity = getIngredientQuantity(selectedProduct, ingredient.id);
+              const quantity = getIngredientQuantity(ingredient.id);
 
               return (
                 <div key={ingredient.id} className="mt-2 flex items-center justify-between">
                   {ingredient.selectable ? (
                     <div className="flex w-full items-center gap-4">
                       <p className="font-medium">{ingredient.type}</p>
+
+                      <select
+                        className="w-full rounded-md border border-gray-400 bg-gray-200 px-2 py-1 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        value={productIngredient.ingredientId}
+                        onChange={(e) =>
+                          handleIngredientSelectChange(
+                            productIngredient.ingredientId,
+                            Number(e.target.value),
+                          )
+                        }
+                      >
+                        {getSelectableOptions(ingredient.type).map((option) => (
+                          <option key={option.id} value={option.id}>
+                            {option.name}
+                          </option>
+                        ))}
+                      </select>
 
                       {ingredient.minQuantity !== 1 || ingredient.maxQuantity !== 1 ? (
                         <div className="flex items-center gap-2">
@@ -331,33 +338,6 @@ export default function HomePage() {
                           </Button>
                         </div>
                       ) : null}
-                      <select
-                        className="w-full rounded-md border border-gray-400 bg-gray-200 px-2 py-1 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        value={productIngredient.ingredientId}
-                        onChange={(e) =>
-                          handleIngredientSelectChange(
-                            productIngredient.ingredientId,
-                            Number(e.target.value),
-                          )
-                        }
-                      >
-                        {getSelectableOptions(ingredient.type).map((option) => (
-                          <option key={option.id} value={option.id}>
-                            {option.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  ) : ingredient.maxQuantity === 1 && ingredient.minQuantity === 0 ? (
-                    <div className="flex items-center gap-2">
-                      <input
-                        checked={quantity > 0}
-                        type="checkbox"
-                        onChange={(e) =>
-                          handleIngredientQuantityChange(ingredient.id, e.target.checked ? 1 : 0)
-                        }
-                      />
-                      <span>{ingredient.name}</span>
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">

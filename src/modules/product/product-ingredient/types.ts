@@ -1,4 +1,7 @@
 export interface ProductIngredient {
-  ingredientId: number;
-  quantity: number;
+  productId: number;
+  ingredients?: {
+    ingredientId: number;
+    quantity: number;
+  }[];
 }
