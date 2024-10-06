@@ -4,7 +4,7 @@ import type {Cart, CartItem} from "./types";
 
 import {createContext, useCallback, useContext, useMemo, useState} from "react";
 
-import {STORE_DATA} from "../store";
+import {STORE} from "../store";
 
 import {Button} from "@/components/ui/button";
 
@@ -32,10 +32,7 @@ export function CartProviderClient({children}: {children: React.ReactNode}) {
 
   const total = useMemo(
     () =>
-      Array.from(cart.values()).reduce(
-        (acc, i) => acc + STORE_DATA.envio + i.quantity * i.price,
-        0,
-      ),
+      Array.from(cart.values()).reduce((acc, i) => acc + STORE.shipping + i.quantity * i.price, 0),
     [cart],
   );
   const quantity = useMemo(

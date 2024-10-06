@@ -1,3 +1,5 @@
 export * from "./types";
 
-export * from "./ingredient";
+export * from "./ingredients";
+
+export {default as IngredientsApi} from "./api";

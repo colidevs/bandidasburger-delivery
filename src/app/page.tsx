@@ -1,20 +1,22 @@
 "use client";
 
-import {useState} from "react";
+import {useState, useEffect} from "react";
 
-import {PRODUCTS, type Product} from "@/modules/product";
-import {INGREDIENTS, type Ingredient} from "@/modules/product/ingredients";
-import {PROD_INGR, type ProductIngredient} from "@/modules/product/product-ingredient";
+import {productApi, type Product} from "@/modules/product";
+import {IngredientsApi, type Ingredient} from "@/modules/product/ingredients";
 import {useCart, type CartItem} from "@/modules/cart";
 import {Button} from "@/components/ui/button";
+import {storeApi, type Store} from "@/modules/store";
 
 export default function HomePage() {
-  //* DISCARD `_` Cuando no usamos algo de lo que se nos esta proveyendo, es una forma estandar de decir ignorar
+  //* Variables y estados
   const [{cart, cartList, total}, {addItem, removeItem, updateItem}] = useCart();
-  const [selected, setSelected] = useState<Product>();
+  const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [store, setStore] = useState<Store | null>(null);
+  const [ingredients, setIngredients] = useState<Ingredient[] | null>(null);
   const [selectedProductIngredients, setSelectedProductIngredients] = useState<
-    {ingredientId: number; quantity: number}[]
+    {name: string; quantity: number}[]
   >([]);
   const [paymentMethod, setPaymentMethod] = useState<string>();
   const [paymentAmount, setPaymentAmount] = useState<string>();
@@ -25,17 +27,43 @@ export default function HomePage() {
     "Ingresa con cuánto abonas",
   );
 
-  function getProductIngredients(productId: number): {ingredientId: number; quantity: number}[] {
-    const productIngr = PROD_INGR?.find((prod) => prod.productId === productId);
+  // useEffect para cargar las APIs al montar el componente
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const storeData = await storeApi.fetch();
 
-    return productIngr?.ingredients || [];
-  }
+        setStore(storeData);
+      } catch (error) {
+        console.error("Error fetching store data:", error);
+      }
+
+      try {
+        const ingredientData = await IngredientsApi.fetch();
+
+        setIngredients(ingredientData);
+      } catch (error) {
+        console.error("Error fetching ingredient data:", error);
+      }
+
+      try {
+        const productData = await productApi.fetch();
+
+        setProducts(productData);
+      } catch (error) {
+        console.error("Error fetching product data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   function handleClickItem(product: Product) {
+    console.log("Selected product:", product);
     addItem(crypto.randomUUID(), {...product, quantity: 1});
     setSelectedProduct(product);
 
-    const ingredients = getProductIngredients(product.id);
+    const ingredients = product.productIngredients || [];
 
     setSelectedProductIngredients(ingredients);
   }
@@ -43,12 +71,13 @@ export default function HomePage() {
   function handleAddItem(id: string, oldCartItem: CartItem) {
     const newItem: CartItem = {...oldCartItem, quantity: oldCartItem.quantity + 1};
 
-    addItem(id, newItem);
+    updateItem(id, newItem);
   }
 
   function handleRemoveItem(id: string, oldCartItem: CartItem) {
-    if (oldCartItem.quantity == 1) removeItem(id);
-    else {
+    if (oldCartItem.quantity === 1) {
+      removeItem(id);
+    } else {
       const newItem: CartItem = {...oldCartItem, quantity: oldCartItem.quantity - 1};
 
       updateItem(id, newItem);
@@ -56,23 +85,25 @@ export default function HomePage() {
   }
 
   function handlePaymentMethodChange(evt: React.ChangeEvent<HTMLInputElement>) {
-    if (evt.target.value === "Mercado Pago") {
+    const selectedPaymentMethod = evt.target.value;
+
+    if (selectedPaymentMethod === "Mercado Pago") {
       setPaymentAmountPlaceholder("Solo efectivo");
       setLastPaymentAmount(paymentAmount);
-      setPaymentAmount(undefined);
+      setPaymentAmount("");
     } else {
-      setPaymentAmount(lastPaymentAmount);
-      setPaymentAmountPlaceholder(
-        lastPaymentAmount !== undefined ? lastPaymentAmount : "Ingresa con cuánto abonas",
-      );
+      setPaymentAmount(lastPaymentAmount || "");
+      setPaymentAmountPlaceholder("Ingresa con cuánto abonas");
     }
-    setPaymentMethod(evt.target.value);
+    setPaymentMethod(selectedPaymentMethod);
   }
 
   function handlePaymentAmountChange(evt: React.ChangeEvent<HTMLInputElement>) {
     const value = evt.target.value;
 
-    if (/^\d*$/.test(value)) setPaymentAmount(value === "" ? "" : value);
+    if (/^\d*$/.test(value)) {
+      setPaymentAmount(value);
+    }
   }
 
   function handleDirectionChanged(evt: React.ChangeEvent<HTMLInputElement>) {
@@ -83,41 +114,18 @@ export default function HomePage() {
     setOrderOwner(evt.target.value);
   }
 
-  function handleIngredientSelectChange(oldIngredientId: number, newIngredientId: number) {
-    const newIngredient = INGREDIENTS.find((i) => i.id === newIngredientId);
-
-    if (!newIngredient) return;
-
+  function handleIngredientQuantityChange(name: string, newQuantity: number) {
     const updatedIngredients = selectedProductIngredients.map((ingredient) =>
-      ingredient.ingredientId === oldIngredientId
-        ? {
-            ingredientId: newIngredientId,
-            quantity: Math.min(ingredient.quantity, newIngredient.maxQuantity),
-          }
-        : ingredient,
+      ingredient.name === name ? {...ingredient, quantity: newQuantity} : ingredient,
     );
 
     setSelectedProductIngredients(updatedIngredients);
   }
 
-  function handleIngredientQuantityChange(ingredientId: number, newQuantity: number) {
-    const updatedIngredients = selectedProductIngredients.map((ingredient) =>
-      ingredient.ingredientId === ingredientId
-        ? {...ingredient, quantity: newQuantity}
-        : ingredient,
-    );
-
-    setSelectedProductIngredients(updatedIngredients);
-  }
-
-  function getIngredientQuantity(ingredientId: number) {
-    const ingredient = selectedProductIngredients.find((i) => i.ingredientId === ingredientId);
+  function getIngredientQuantity(name: string) {
+    const ingredient = selectedProductIngredients.find((i) => i.name === name);
 
     return ingredient ? ingredient.quantity : 0;
-  }
-
-  function getSelectableOptions(type: string) {
-    return INGREDIENTS.filter((ingredient) => ingredient.type === type && ingredient.selectable);
   }
 
   function handleOrderProducts() {
@@ -126,99 +134,75 @@ export default function HomePage() {
 
     if (
       (paymentMethod === "Efectivo" || paymentMethod === "Mercado Pago") &&
-      direction !== null &&
-      direction !== undefined &&
-      direction !== "" &&
-      orderOwner !== null &&
-      orderOwner !== undefined &&
-      orderOwner !== "" &&
-      (paymentMethod === "Efectivo"
-        ? paymentAmount === "0"
-          ? false
-          : paymentAmount === undefined
-            ? false
-            : Number(paymentAmount) <= total
-              ? false
-              : true
-        : Number(paymentAmount) <= total
-          ? false
-          : true)
+      direction &&
+      orderOwner &&
+      (paymentMethod === "Efectivo" ? paymentAmount && Number(paymentAmount) > total : true)
     ) {
       if (paymentMethod === "Efectivo") {
         mensaje =
           `*Pedido:*\n` +
           products
             .map((burga) => {
-              return `*${burga.title} (${burga.quantity}) - ${burga.quantity * burga.price}`;
+              return `*${burga.name} (${burga.quantity}) - ${burga.quantity * burga.price}`;
             })
             .join("\n") +
-          `\n\n--\n\n*Datos:*
-* Forma de pago: ${paymentMethod}
-* Con cuanto abonas: ${paymentAmount}
-* Dirección de envío: ${direction}
-* Pedido a nombre de: ${orderOwner}\n\n--\n\n*Total (envío incluido): $${total}*
-*Vuelto: $${Number(paymentAmount) - total}*`;
+          `\n\n--\n\n*Datos:*\n* Forma de pago: ${paymentMethod}\n* Con cuanto abonas: ${paymentAmount}\n* Dirección de envío: ${direction}\n* Pedido a nombre de: ${orderOwner}\n\n--\n\n*Total (envío incluido): $${total}*\n*Vuelto: $${Number(paymentAmount) - total}*`;
       } else {
         mensaje =
           `*Pedido:*\n` +
           products
             .map((burga) => {
-              return `*${burga.title} (${burga.quantity}) - ${burga.quantity * burga.price}`;
+              return `*${burga.name} (${burga.quantity}) - ${burga.quantity * burga.price}`;
             })
             .join("\n") +
-          `\n\n--\n\n*Datos:*
-* Forma de pago: ${paymentMethod}
-* Dirección de envío: ${direction}
-* Pedido a nombre de: ${orderOwner}\n\n--\n\n*Total (envío incluido): $${total}*`;
+          `\n\n--\n\n*Datos:*\n* Forma de pago: ${paymentMethod}\n* Dirección de envío: ${direction}\n* Pedido a nombre de: ${orderOwner}\n\n--\n\n*Total (envío incluido): $${total}*`;
       }
 
       console.log(mensaje);
 
-      // const whatsappUrl = `https://wa.me/${STORE_DATA.phone}?text=${encodeURIComponent(mensaje)}`;
-      // window.open(whatsappUrl, "_blank");
+      // if (store?.whatsapp) {
+      //   const whatsappUrl = `${store.whatsapp}?text=${encodeURIComponent(mensaje)}`;
+
+      //   window.open(whatsappUrl, "_blank");
+      // }
     }
   }
 
   return (
     <section className="flex gap-6">
       <ul className="flex flex-1 flex-col gap-8">
-        {PRODUCTS.map((product) => (
-          <li key={product.id} className="border">
+        {products.map((product) => (
+          <li key={product.name} className="border">
             <div className="flex justify-between" onClick={() => handleClickItem(product)}>
               <div className="flex flex-col">
-                <h3>{product.title}</h3>
-                <p>{product.description}</p>
+                <h3>{product.name}</h3>
+                <p>{product.customDescription}</p>
                 <p>{product.price}</p>
               </div>
-              <img alt={"imagen de " + product.title} src={product.image} width={144} />
+              <img alt={"imagen de " + product.name} src={product.image} width={144} />
             </div>
           </li>
         ))}
       </ul>
       <aside className="w-4xl border p-8">
-        <div>
-          {cart.size !== 0 ? (
-            <article>
-              <h2>Carrito!</h2>
-
-              <ul className="flex flex-col gap-4">
-                {cartList.map(([cartId, product]) => (
-                  // ITEM DEL CARRITO
-
-                  <li key={crypto.randomUUID()} className="border p-2">
-                    <p>{product.title}</p>
-                    <p>{product.quantity}</p>
-                    <Button onClick={() => handleRemoveItem(cartId, product)}>-</Button>
-                    <Button onClick={() => handleAddItem(cartId, product)}>+</Button>
-                  </li>
-                ))}
-              </ul>
-            </article>
-          ) : (
-            <p>No hay productos</p>
-          )}
-        </div>
-        <Button onClick={() => handleOrderProducts()}>Finalizar Pedido </Button>
+        {cart.size !== 0 ? (
+          <article>
+            <h2>Carrito!</h2>
+            <ul className="flex flex-col gap-4">
+              {cartList.map(([cartId, product]) => (
+                <li key={cartId} className="border p-2">
+                  <p>{product.name}</p>
+                  <p>{product.quantity}</p>
+                  <Button onClick={() => handleRemoveItem(cartId, product)}>-</Button>
+                  <Button onClick={() => handleAddItem(cartId, product)}>+</Button>
+                </li>
+              ))}
+            </ul>
+          </article>
+        ) : (
+          <p>No hay productos</p>
+        )}
+        <Button onClick={handleOrderProducts}>Finalizar Pedido </Button>
       </aside>
       <div className="flex flex-col gap-2">
         <div className="fmt-4">
@@ -233,7 +217,7 @@ export default function HomePage() {
             />
             Efectivo
           </label>
-          <label>
+          <label className="flex items-center">
             <input
               checked={paymentMethod === "Mercado Pago"}
               className="mr-2"
@@ -250,18 +234,19 @@ export default function HomePage() {
             className="rounded border border-gray-300 px-4 py-2 text-black focus:border-blue-500 focus:outline-none"
             placeholder="Ingresa tu dirección"
             type="text"
-            onBlur={handleDirectionChanged}
+            value={direction || ""}
+            onChange={handleDirectionChanged}
           />
         </div>
         <div className="flex flex-col gap-2">
-          <p className="text-lg font-medium">Con cuanto abonas:</p>
+          <p className="text-lg font-medium">Con cuánto abonas:</p>
           <input
             className="rounded border border-gray-300 px-4 py-2 text-black focus:border-blue-500 focus:outline-none"
             disabled={paymentMethod !== "Efectivo"}
-            placeholder={paymentAmount === undefined ? paymentAmountPlaceholder : ""}
+            placeholder={paymentAmountPlaceholder}
             type="text"
-            value={paymentAmount === undefined ? "" : paymentAmount}
-            onInput={handlePaymentAmountChange}
+            value={paymentAmount || ""}
+            onChange={handlePaymentAmountChange}
           />
         </div>
         <div className="flex flex-col gap-2">
@@ -270,103 +255,48 @@ export default function HomePage() {
             className="rounded border border-gray-300 px-4 py-2 text-black focus:border-blue-500 focus:outline-none"
             placeholder="Ingresa tu nombre"
             type="text"
-            onBlur={handleOrderOwnerChanged}
+            value={orderOwner || ""}
+            onChange={handleOrderOwnerChanged}
           />
         </div>
       </div>
       {selectedProduct ? (
         <div className="border p-4">
-          <h2 className="text-xl font-semibold">Editando: {selectedProduct.title}</h2>
-          <p>{selectedProduct.description}</p>
+          <h2 className="text-xl font-semibold">Editando: {selectedProduct.name}</h2>
+          <p>{selectedProduct.customDescription}</p>
 
           <div className="mt-2">
             <h4 className="text-md font-semibold">Ingredientes</h4>
-            {selectedProductIngredients.map((productIngredient) => {
-              const ingredient = INGREDIENTS.find((i) => i.id === productIngredient.ingredientId);
+            {selectedProductIngredients.map((ingredient) => {
+              const ingredientData = ingredients?.find((i) => i.name === ingredient.name);
 
-              if (!ingredient) return null;
+              if (!ingredientData) return null;
 
-              const quantity = getIngredientQuantity(ingredient.id);
+              const quantity = getIngredientQuantity(ingredient.name);
 
               return (
-                <div key={ingredient.id} className="mt-2 flex items-center justify-between">
-                  {ingredient.selectable ? (
-                    <div className="flex w-full items-center gap-4">
-                      <p className="font-medium">{ingredient.type}</p>
-
-                      <select
-                        className="w-full rounded-md border border-gray-400 bg-gray-200 px-2 py-1 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        value={productIngredient.ingredientId}
-                        onChange={(e) =>
-                          handleIngredientSelectChange(
-                            productIngredient.ingredientId,
-                            Number(e.target.value),
-                          )
-                        }
-                      >
-                        {getSelectableOptions(ingredient.type).map((option) => (
-                          <option key={option.id} value={option.id}>
-                            {option.name}
-                          </option>
-                        ))}
-                      </select>
-
-                      {ingredient.minQuantity !== 1 || ingredient.maxQuantity !== 1 ? (
-                        <div className="flex items-center gap-2">
-                          <Button
-                            className="bg-red-500 px-2 py-1 text-white"
-                            onClick={() =>
-                              handleIngredientQuantityChange(
-                                productIngredient.ingredientId,
-                                Math.max(ingredient.minQuantity, quantity - 1),
-                              )
-                            }
-                          >
-                            -
-                          </Button>
-                          <span>{quantity}</span>
-                          <Button
-                            className="bg-green-500 px-2 py-1 text-white"
-                            onClick={() =>
-                              handleIngredientQuantityChange(
-                                productIngredient.ingredientId,
-                                Math.min(ingredient.maxQuantity, quantity + 1),
-                              )
-                            }
-                          >
-                            +
-                          </Button>
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <span>{ingredient.name}</span>
-                      <Button
-                        className="bg-red-500 px-2 py-1 text-white"
-                        onClick={() =>
-                          handleIngredientQuantityChange(
-                            ingredient.id,
-                            Math.max(ingredient.minQuantity, quantity - 1),
-                          )
-                        }
-                      >
-                        -
-                      </Button>
-                      <span>{quantity}</span>
-                      <Button
-                        className="bg-green-500 px-2 py-1 text-white"
-                        onClick={() =>
-                          handleIngredientQuantityChange(
-                            ingredient.id,
-                            Math.min(ingredient.maxQuantity, quantity + 1),
-                          )
-                        }
-                      >
-                        +
-                      </Button>
-                    </div>
-                  )}
+                <div key={ingredient.name} className="mt-2 flex items-center justify-between">
+                  <span>{ingredient.name}</span>
+                  <Button
+                    className="bg-red-500 px-2 py-1 text-white"
+                    onClick={() =>
+                      handleIngredientQuantityChange(ingredient.name, Math.max(0, quantity - 1))
+                    }
+                  >
+                    -
+                  </Button>
+                  <span>{quantity}</span>
+                  <Button
+                    className="bg-green-500 px-2 py-1 text-white"
+                    onClick={() =>
+                      handleIngredientQuantityChange(
+                        ingredient.name,
+                        Math.min(ingredientData.max, quantity + 1),
+                      )
+                    }
+                  >
+                    +
+                  </Button>
                 </div>
               );
             })}

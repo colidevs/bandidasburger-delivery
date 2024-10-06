@@ -2,35 +2,39 @@ import {Product} from "./";
 
 export const PRODUCTS: Product[] = [
   {
-    id: 1,
-    title: "Perversa",
-    category: "Simples",
-    description: "Medallón 150gr - Doble cheddar - Pan de papa",
-    image: "/assets/products/01.jpg",
-    price: 8000,
+    type: "Hamburguesa",
+    name: "Bandida",
+    description: "M - Medallon",
+    customDescription: "M - La hamburguesa mas sabroza de zona sur",
+    image: "",
+    price: 10000,
+    active: true,
+    productIngredients: [
+      {
+        name: "Pan de queso",
+        quantity: 1,
+      },
+      {
+        name: "Medallon de carne",
+        quantity: 2,
+      },
+      {
+        name: "Cheddar fundido",
+        quantity: 1,
+      },
+      {
+        name: "Medida de bacon",
+        quantity: 1,
+      },
+    ],
   },
   {
-    id: 2,
-    title: "Gata malvada",
-    category: "Dobles",
-    description: "Doble medallón 110gr - Cuadruple cheddar - Bacon - Cebolla Cryspy - Pan de papa",
-    image: "/assets/products/02.jpg",
-    price: 9500,
-  },
-  {
-    id: 3,
-    title: "Fritas",
-    category: "Guarniciones",
-    description: "Bandeja de papas fritas para compartir",
-    image: "/assets/products/07.jpg",
+    type: "M - Guarnicion",
+    name: "M - Fritas",
+    description: "",
+    customDescription: "M - Bandeja de papas fritas para compartir",
+    image: "",
     price: 6000,
-  },
-  {
-    id: 4,
-    title: "Fritas especiales",
-    category: "Guarniciones",
-    description: "Bandeja de papas fritas con cheddar, bacon y verdeo para compartir",
-    image: "/assets/products/07.jpg",
-    price: 6000,
+    active: true,
   },
 ];
