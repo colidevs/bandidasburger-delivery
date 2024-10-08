@@ -2,8 +2,8 @@ import {Product} from "./";
 
 export const PRODUCTS: Product[] = [
   {
-    type: "Hamburguesa",
-    name: "Bandida",
+    type: "M - Hamburguesa",
+    name: "M - Bandida",
     description: "M - Medallon",
     customDescription: "M - La hamburguesa mas sabroza de zona sur",
     image: "",
@@ -11,19 +11,19 @@ export const PRODUCTS: Product[] = [
     active: true,
     productIngredients: [
       {
-        name: "Pan de queso",
+        name: "M - Pan de queso",
         quantity: 1,
       },
       {
-        name: "Medallon de carne",
+        name: "M - Medallon de carne",
         quantity: 2,
       },
       {
-        name: "Cheddar fundido",
+        name: "M - Cheddar fundido",
         quantity: 1,
       },
       {
-        name: "Medida de bacon",
+        name: "M - Medida de bacon",
         quantity: 1,
       },
     ],
