@@ -3,6 +3,22 @@ import Papa from "papaparse";
 import {Product, CsvProduct} from "./types";
 import {PRODUCTS} from "./product";
 
+function parseGoogleDriveLink(link: string): string {
+  //! LINK STANDAR
+  //https://drive.google.com/file/d/1jbgmjfOU9QJdmzdJtgkAQa4iSagsreH5/view?usp=drive_link
+
+  // ante este caso uasr split
+  //https://drive.google.com/uc?export=view&id=11BLFAfOJ1C4uhrlRf4xfx1dcIBtOmgUc
+
+  const match = link.match(/\/d\/(.*?)\//);
+
+  if (match && match[1]) {
+    return `https://lh3.google.com/u/0/d/${match[1]}=w1920-h925-iv1`;
+  } else {
+    return "";
+  }
+}
+
 export default {
   fetch: async (): Promise<Product[]> => {
     const productsUrl = process.env.NEXT_PUBLIC_PRODUCTS;
@@ -23,8 +39,7 @@ export default {
           complete: (results) => {
             try {
               // Eliminar la primera fila de resultados
-              results.data.shift();
-
+              //results.data.shift();
               const products = (results.data as CsvProduct[]).map((row: CsvProduct) => {
                 const productIngredients: {name: string; quantity: number}[] = [];
 
@@ -32,7 +47,6 @@ export default {
                 for (let i = 0; i <= 9; i++) {
                   const ingredientKey = i === 0 ? "ingrediente" : `ingrediente_${i}`;
                   const quantityKey = i === 0 ? "cantidad" : `cantidad_${i}`;
-
                   const ingredientName = row[ingredientKey as keyof CsvProduct];
                   const ingredientQuantity = row[quantityKey as keyof CsvProduct];
 
@@ -48,22 +62,19 @@ export default {
                     });
                   }
                 }
-
                 // Validar precio antes de usar `replace`
                 const priceString =
                   typeof row.precio === "string" ? row.precio.replace(/[$,]/g, "") : "0";
                 const price = parseFloat(priceString);
-
                 // Validar si el campo 'activo' está definido antes de aplicar 'toLowerCase'
                 const isActive =
                   typeof row.activo === "string" ? row.activo.toLowerCase() === "si" : false;
-
                 const product: Product = {
                   type: row.tipo || "",
                   name: row.nombre || "",
                   description: row.descripcion || "",
                   customDescription: row["descripcion personalizada"] || "",
-                  image: row.imagen || "",
+                  image: parseGoogleDriveLink(row.imagen) || "",
                   price,
                   active: isActive,
                   productIngredients:
