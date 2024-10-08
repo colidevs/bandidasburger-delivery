@@ -26,6 +26,7 @@ export default function HomePage() {
   const [paymentAmountPlaceholder, setPaymentAmountPlaceholder] = useState<string>(
     "Ingresa con cuánto abonas",
   );
+  const [shippingCost, setShippingCost] = useState<number>(350); // Costo de envío fijo
 
   // useEffect para cargar las APIs al montar el componente
   useEffect(() => {
@@ -198,6 +199,11 @@ export default function HomePage() {
                 </li>
               ))}
             </ul>
+            <p>
+              Total (con envío): $
+              {cartList.reduce((sum, [_, product]) => sum + product.price * product.quantity, 0) +
+                shippingCost}
+            </p>
           </article>
         ) : (
           <p>No hay productos</p>
@@ -231,76 +237,81 @@ export default function HomePage() {
         <div className="flex flex-col gap-2">
           <p className="text-lg font-medium">Dirección:</p>
           <input
-            className="rounded border border-gray-300 px-4 py-2 text-black focus:border-blue-500 focus:outline-none"
-            placeholder="Ingresa tu dirección"
+            className="rounded border border-gray-300 px-2 py-1"
+            placeholder="Ingresa la dirección de envío"
             type="text"
-            value={direction || ""}
+            value={direction}
             onChange={handleDirectionChanged}
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <p className="text-lg font-medium">Con cuánto abonas:</p>
-          <input
-            className="rounded border border-gray-300 px-4 py-2 text-black focus:border-blue-500 focus:outline-none"
-            disabled={paymentMethod !== "Efectivo"}
-            placeholder={paymentAmountPlaceholder}
-            type="text"
-            value={paymentAmount || ""}
-            onChange={handlePaymentAmountChange}
           />
         </div>
         <div className="flex flex-col gap-2">
           <p className="text-lg font-medium">Pedido a nombre de:</p>
           <input
-            className="rounded border border-gray-300 px-4 py-2 text-black focus:border-blue-500 focus:outline-none"
-            placeholder="Ingresa tu nombre"
+            className="rounded border border-gray-300 px-2 py-1"
+            placeholder="Ingresa el nombre para el pedido"
             type="text"
-            value={orderOwner || ""}
+            value={orderOwner}
             onChange={handleOrderOwnerChanged}
           />
         </div>
+        {paymentMethod === "Efectivo" && (
+          <div className="flex flex-col gap-2">
+            <p className="text-lg font-medium">Monto recibido:</p>
+            <input
+              className="rounded border border-gray-300 px-2 py-1"
+              placeholder={paymentAmountPlaceholder}
+              type="text"
+              value={paymentAmount}
+              onChange={handlePaymentAmountChange}
+            />
+          </div>
+        )}
       </div>
+
       {selectedProduct ? (
         <div className="border p-4">
           <h2 className="text-xl font-semibold">Editando: {selectedProduct.name}</h2>
           <p>{selectedProduct.customDescription}</p>
 
-          <div className="mt-2">
-            <h4 className="text-md font-semibold">Ingredientes</h4>
-            {selectedProductIngredients.map((ingredient) => {
-              const ingredientData = ingredients?.find((i) => i.name === ingredient.name);
+          {/* Verificar si hay ingredientes antes de mostrar la sección */}
+          {selectedProductIngredients.length > 0 && (
+            <div className="mt-2">
+              <h4 className="text-md font-semibold">Ingredientes</h4>
+              {selectedProductIngredients.map((ingredient) => {
+                const ingredientData = ingredients?.find((i) => i.name === ingredient.name);
 
-              if (!ingredientData) return null;
+                if (!ingredientData) return null;
 
-              const quantity = getIngredientQuantity(ingredient.name);
+                const quantity = getIngredientQuantity(ingredient.name);
 
-              return (
-                <div key={ingredient.name} className="mt-2 flex items-center justify-between">
-                  <span>{ingredient.name}</span>
-                  <Button
-                    className="bg-red-500 px-2 py-1 text-white"
-                    onClick={() =>
-                      handleIngredientQuantityChange(ingredient.name, Math.max(0, quantity - 1))
-                    }
-                  >
-                    -
-                  </Button>
-                  <span>{quantity}</span>
-                  <Button
-                    className="bg-green-500 px-2 py-1 text-white"
-                    onClick={() =>
-                      handleIngredientQuantityChange(
-                        ingredient.name,
-                        Math.min(ingredientData.max, quantity + 1),
-                      )
-                    }
-                  >
-                    +
-                  </Button>
-                </div>
-              );
-            })}
-          </div>
+                return (
+                  <div key={ingredient.name} className="mt-2 flex items-center justify-between">
+                    <span>{ingredient.name}</span>
+                    <Button
+                      className="bg-red-500 px-2 py-1 text-white"
+                      onClick={() =>
+                        handleIngredientQuantityChange(ingredient.name, Math.max(0, quantity - 1))
+                      }
+                    >
+                      -
+                    </Button>
+                    <span>{quantity}</span>
+                    <Button
+                      className="bg-green-500 px-2 py-1 text-white"
+                      onClick={() =>
+                        handleIngredientQuantityChange(
+                          ingredient.name,
+                          Math.min(ingredientData.max, quantity + 1),
+                        )
+                      }
+                    >
+                      +
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       ) : null}
     </section>
