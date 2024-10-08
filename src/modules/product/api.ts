@@ -75,6 +75,7 @@ export default {
                   description: row.descripcion || "",
                   customDescription: row["descripcion personalizada"] || "",
                   image: parseGoogleDriveLink(row.imagen) || "",
+                  image: parseGoogleDriveLink(row.imagen) || "",
                   price,
                   active: isActive,
                   productIngredients:
