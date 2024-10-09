@@ -18,13 +18,15 @@ export default {
           header: true,
           complete: (results) => {
             // Aquí realizamos la aserción de tipo usando 'as CsvIngredient[]' para indicarle a TypeScript que los datos tienen el formato CsvIngredient
-            const ingredients = (results.data as CsvIngredient[]).map((row: CsvIngredient) => ({
-              type: row.tipo,
-              name: row.nombre,
-              addPrice: parseFloat(row["precio-adicional"].replace(/[$,]/g, "")), // Convierte el precio a número
-              max: parseInt(row.max, 10), // Asegúrate de convertir max a número
-              active: row.activo.toLowerCase() === "si", // Convierte "si" y "no" a booleano
-            }));
+            const ingredients = (results.data as CsvIngredient[])
+              .map((row: CsvIngredient) => ({
+                type: row.tipo,
+                name: row.nombre,
+                addPrice: parseFloat(row["precio-adicional"].replace(/[$,]/g, "")), // Convierte el precio a número
+                max: parseInt(row.max, 10), // Asegúrate de convertir max a número
+                active: row.activo.toLowerCase() === "si", // Convierte "si" y "no" a booleano
+              }))
+              .filter((ingredient) => ingredient.active);
 
             resolve(ingredients as Ingredient[]);
           },

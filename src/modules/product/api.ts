@@ -4,19 +4,48 @@ import {Product, CsvProduct} from "./types";
 import {PRODUCTS} from "./product";
 
 function parseGoogleDriveLink(link: string): string {
-  //! LINK STANDAR
-  //https://drive.google.com/file/d/1jbgmjfOU9QJdmzdJtgkAQa4iSagsreH5/view?usp=drive_link
-
-  // ante este caso uasr split
-  //https://drive.google.com/uc?export=view&id=11BLFAfOJ1C4uhrlRf4xfx1dcIBtOmgUc
-
   const match = link.match(/\/d\/(.*?)\//);
 
-  if (match && match[1]) {
-    return `https://lh3.google.com/u/0/d/${match[1]}=w1920-h925-iv1`;
-  } else {
-    return "";
+  return match && match[1] ? `https://lh3.google.com/u/0/d/${match[1]}=w1920-h925-iv1` : "";
+}
+
+function formatIngredientName(name: string, quantity: number): string {
+  if (name.toLowerCase().startsWith("medallon")) {
+    if (quantity === 1) {
+      return "Medallon de 150gr";
+    } else if (quantity === 2) {
+      return `Doble medallon de 110gr`;
+    } else if (quantity === 3) {
+      return `Triple medallon de 110gr`;
+    } else if (quantity === 4) {
+      return `Cuadruple medallon de 110gr`;
+    } else if (quantity === 5) {
+      return `Quintuple medallon de 110gr`;
+    } else if (quantity === 6) {
+      return `Sextuple medallon de 110gr`;
+    } else if (quantity === 7) {
+      return `Septuple medallon de 110gr`;
+    } else if (quantity === 8) {
+      return `Octuple medallon de 110gr`;
+    } else if (quantity > 8) {
+      return `${quantity} medallones de 110gr`;
+    }
   }
+
+  if (name.toLowerCase().startsWith("feta")) {
+    const ingredientName = name.slice(5).trim(); // Extrae el nombre después de "feta"
+
+    if (quantity === 1) return `${quantity} feta de ${ingredientName}`;
+
+    return `${quantity} fetas de ${ingredientName}`;
+  }
+
+  if (name.toLowerCase().startsWith("medida")) {
+    if (quantity === 1) return `${quantity} medida de bacon`;
+    else return `${quantity} medidas de bacon`;
+  }
+
+  return name;
 }
 
 export default {
@@ -38,8 +67,6 @@ export default {
           skipEmptyLines: true,
           complete: (results) => {
             try {
-              // Eliminar la primera fila de resultados
-              //results.data.shift();
               const products = (results.data as CsvProduct[]).map((row: CsvProduct) => {
                 const productIngredients: {name: string; quantity: number}[] = [];
 
@@ -62,19 +89,32 @@ export default {
                     });
                   }
                 }
-                // Validar precio antes de usar `replace`
+
+                // Mover el pan al final de la lista de ingredientes
+                const sortedIngredients = [
+                  ...productIngredients.filter((ing) => !ing.name.toLowerCase().includes("pan")),
+                  ...productIngredients.filter((ing) => ing.name.toLowerCase().includes("pan")),
+                ];
+
+                // Crear una descripción formateada a partir de los ingredientes
+                const formattedDescription = sortedIngredients
+                  .map((ingredient) => formatIngredientName(ingredient.name, ingredient.quantity))
+                  .join(" - ");
+
+                const description =
+                  row["descripcion personalizada"] || formattedDescription || row.descripcion || "";
+
                 const priceString =
                   typeof row.precio === "string" ? row.precio.replace(/[$,]/g, "") : "0";
                 const price = parseFloat(priceString);
-                // Validar si el campo 'activo' está definido antes de aplicar 'toLowerCase'
                 const isActive =
                   typeof row.activo === "string" ? row.activo.toLowerCase() === "si" : false;
+
                 const product: Product = {
                   type: row.tipo || "",
                   name: row.nombre || "",
-                  description: row.descripcion || "",
+                  description,
                   customDescription: row["descripcion personalizada"] || "",
-                  image: parseGoogleDriveLink(row.imagen) || "",
                   image: parseGoogleDriveLink(row.imagen) || "",
                   price,
                   active: isActive,

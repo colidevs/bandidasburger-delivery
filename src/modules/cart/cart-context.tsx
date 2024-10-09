@@ -32,7 +32,7 @@ export function CartProviderClient({children}: {children: React.ReactNode}) {
 
   const total = useMemo(
     () =>
-      Array.from(cart.values()).reduce((acc, i) => acc + STORE.shipping + i.quantity * i.price, 0),
+      Array.from(cart.values()).reduce((acc, i) => acc + i.quantity * i.price, 0) + STORE.shipping,
     [cart],
   );
   const quantity = useMemo(
@@ -41,8 +41,27 @@ export function CartProviderClient({children}: {children: React.ReactNode}) {
   );
 
   const addItem = useCallback(
+    // (id: string, value: CartItem) => {
+    //   cart.set(id, value);
+
+    //   setCart(new Map(cart));
     (id: string, value: CartItem) => {
-      cart.set(id, value);
+      // Encontrar un producto con el mismo nombre y los mismos ingredientes
+      const existingEntry = Array.from(cart.entries()).find(
+        ([, item]) =>
+          item.name === value.name &&
+          JSON.stringify(item.productIngredients) === JSON.stringify(value.productIngredients),
+      );
+
+      if (existingEntry) {
+        // Si hay un producto idéntico, actualizar su cantidad
+        const [existingId, existingItem] = existingEntry;
+
+        cart.set(existingId, {...existingItem, quantity: existingItem.quantity + value.quantity});
+      } else {
+        // Si no hay un producto idéntico, agregarlo como nuevo ítem
+        cart.set(id, value);
+      }
 
       setCart(new Map(cart));
     },
