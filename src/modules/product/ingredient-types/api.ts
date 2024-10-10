@@ -4,13 +4,13 @@ import {IngredientType, CsvIngredientType, INGREDIENT_TYPES} from "./";
 
 export default {
   fetch: async (): Promise<IngredientType[]> => {
-    const productTypesUrl = process.env.NEXT_PUBLIC_INGREDIENTS_TYPES;
+    const ingredientsTypesUrl = process.env.NEXT_PUBLIC_INGREDIENTS_TYPES;
 
-    if (!productTypesUrl) {
-      throw new Error("PRODUCTS_TYPES environment variable is not defined");
+    if (!ingredientsTypesUrl) {
+      throw new Error("NEXT_PUBLIC_INGREDIENTS_TYPES environment variable is not defined");
     }
 
-    return fetch(productTypesUrl, {next: {tags: ["productTypes"]}}).then(async (response) => {
+    return fetch(ingredientsTypesUrl, {next: {tags: ["productTypes"]}}).then(async (response) => {
       const csv = await response.text();
 
       return new Promise<IngredientType[]>((resolve, reject) => {
