@@ -7,8 +7,9 @@ export const PRODUCTS: Product[] = [
     description: "M - Medallon",
     customDescription: "M - La hamburguesa mas sabroza de zona sur",
     image: "",
-    price: 10000,
+    subproduct: "M - Papas fritas",
     active: true,
+    price: 10000,
     productIngredients: [
       {
         name: "M - Pan de queso",
@@ -34,6 +35,7 @@ export const PRODUCTS: Product[] = [
     description: "",
     customDescription: "M - Bandeja de papas fritas para compartir",
     image: "",
+    subproduct: undefined,
     price: 6000,
     active: true,
   },

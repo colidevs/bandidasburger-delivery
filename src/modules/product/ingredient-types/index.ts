@@ -2,4 +2,4 @@ export * from "./types";
 
 export * from "./ingredientTypes";
 
-export {default as ingredientTypesApi} from "./api";
+export {default as IngredientTypesApi} from "./api";

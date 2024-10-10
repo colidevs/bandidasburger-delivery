@@ -4,6 +4,7 @@ export interface Product {
   description?: string;
   customDescription?: string;
   image: string;
+  subproduct?: string;
   price: number;
   active: boolean;
   productIngredients?: {
@@ -18,6 +19,7 @@ export interface CsvProduct {
   descripcion?: string;
   "descripcion personalizada"?: string;
   imagen: string;
+  subproducto?: string;
   precio: string;
   activo: string;
   productIngredients?: {

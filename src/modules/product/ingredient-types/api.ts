@@ -18,14 +18,14 @@ export default {
           header: true,
           complete: (results) => {
             // Aquí realizamos la aserción de tipo usando 'as CsvIngredient[]' para indicarle a TypeScript que los datos tienen el formato CsvIngredient
-            const productTypes = (results.data as CsvIngredientType[]).map(
-              (row: CsvIngredientType) => ({
+            const productTypes = (results.data as CsvIngredientType[])
+              .map((row: CsvIngredientType) => ({
                 name: row.nombre,
                 required: row.requerido.toLowerCase() === "si",
                 switchable: row.intercambiable.toLowerCase() === "si",
                 active: row.activo.toLowerCase() === "si",
-              }),
-            );
+              }))
+              .filter((ingredientType) => ingredientType.active);
 
             resolve(productTypes as IngredientType[]);
           },

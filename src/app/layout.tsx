@@ -2,7 +2,7 @@ import type {Metadata} from "next";
 
 import {FaInstagram, FaWhatsapp} from "react-icons/fa";
 
-import {storeApi} from "@/modules/store";
+import {StoreApi} from "@/modules/store";
 import {CartProviderClient} from "@/modules/cart";
 
 import "./globals.css";
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({children}: {children: React.ReactNode}) {
-  const store = await storeApi.fetch();
+  const store = await StoreApi.fetch();
 
   return (
     <html lang="en">

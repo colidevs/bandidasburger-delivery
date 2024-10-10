@@ -1,14 +1,15 @@
 "use client";
 
-import {useState, useEffect} from "react";
+import {useState} from "react";
 
-import {productApi, type Product} from "@/modules/product";
-import {IngredientsApi, type Ingredient} from "@/modules/product/ingredients";
-import {ingredientTypesApi, type IngredientType} from "@/modules/product/ingredient-types";
-import {productTypesApi, type ProductType} from "@/modules/product/product-types";
+import {Product} from "@/modules/product";
+import {Ingredient} from "@/modules/product/ingredients";
+import {IngredientType} from "@/modules/product/ingredient-types";
+import {ProductType} from "@/modules/product/product-types";
 import {useCart, type CartItem} from "@/modules/cart";
 import {Button} from "@/components/ui/button";
-import {storeApi, type Store} from "@/modules/store";
+import {Store} from "@/modules/store";
+import {Subproduct} from "@/modules/product/subproducts";
 
 type HomePageClientProps = {
   storeData: Store;
@@ -16,6 +17,7 @@ type HomePageClientProps = {
   productData: Product[];
   ingredientTypesData: IngredientType[];
   productTypesData: ProductType[];
+  subproductsData: Subproduct[];
 };
 
 export default function HomePageClient({
@@ -24,14 +26,17 @@ export default function HomePageClient({
   productData,
   ingredientTypesData,
   productTypesData,
+  subproductsData,
 }: HomePageClientProps) {
   //* Variables y estados
   const [{cart, cartList, total}, {addItem, removeItem, updateItem}] = useCart();
   const [products, setProducts] = useState<Product[]>(productData);
   const [selectedProduct, setSelectedProduct] = useState<Product>();
+  const [defaultSelectedProduct, setDefaultSelectedProduct] = useState<Product>();
   const [store, setStore] = useState<Store>(storeData);
   const [ingredients, setIngredients] = useState<Ingredient[]>(ingredientData);
   const [productQuantity, setQuantity] = useState(1); // Estado para el contador de cantidad
+  const [currentPrice, setCurrentPrice] = useState(0); // Estado para el precio total dinámico del producto
 
   // Nuevos estados para eliminar los errores
   const [paymentMethod, setPaymentMethod] = useState<string>("");
@@ -48,6 +53,41 @@ export default function HomePageClient({
 
   function handleClickItem(product: Product) {
     setSelectedProduct({...product});
+    setDefaultSelectedProduct({...product});
+    setCurrentPrice(product.price);
+  }
+
+  function calculateTotalPrice() {
+    if (!selectedProduct || !defaultSelectedProduct) return;
+
+    let total = defaultSelectedProduct.price;
+
+    selectedProduct.productIngredients?.forEach((ingredient) => {
+      const defaultIngredient = defaultSelectedProduct.productIngredients?.find(
+        (i) => i.name === ingredient.name,
+      );
+      const ingredientData = ingredients.find((i) => i.name === ingredient.name);
+
+      if (ingredientData && defaultIngredient) {
+        const additionalQuantity = ingredient.quantity - defaultIngredient.quantity;
+
+        if (additionalQuantity > 0) {
+          total += additionalQuantity * ingredientData.addPrice;
+        }
+      }
+    });
+
+    if (selectedProduct.subproduct !== defaultSelectedProduct.subproduct) {
+      const selectedSubproduct = subproductsData.find(
+        (subproduct) => subproduct.name === selectedProduct.subproduct,
+      );
+
+      if (selectedSubproduct) {
+        total += selectedSubproduct.price;
+      }
+    }
+
+    setCurrentPrice(total);
   }
 
   function handleAddItem(id: string, oldCartItem: CartItem) {
@@ -82,6 +122,23 @@ export default function HomePageClient({
       setSelectedProduct({
         ...selectedProduct,
         productIngredients: updatedIngredients,
+      });
+
+      calculateTotalPrice();
+    }
+  }
+
+  // Al cambiar el subproducto, recalcular el precio total
+  function handleSubproductChange(newSubproduct: string) {
+    if (selectedProduct) {
+      setSelectedProduct((prevProduct) => {
+        const updatedProduct = prevProduct
+          ? {...prevProduct, subproduct: newSubproduct}
+          : prevProduct;
+
+        calculateTotalPrice();
+
+        return updatedProduct;
       });
     }
   }
@@ -385,29 +442,34 @@ export default function HomePageClient({
                                 </option>
                               ))}
                             </select>
-                            <Button
-                              className="bg-red-500 px-2 py-1 text-white"
-                              onClick={() =>
-                                handleIngredientQuantityChange(
-                                  ingredient.name,
-                                  Math.max(1, ingredient.quantity - 1), // No permite bajar a 0 si `required === true`
-                                )
-                              }
-                            >
-                              -
-                            </Button>
-                            <span>{ingredient.quantity}</span>
-                            <Button
-                              className="bg-green-500 px-2 py-1 text-white"
-                              onClick={() =>
-                                handleIngredientQuantityChange(
-                                  ingredient.name,
-                                  Math.min(maxQuantity, ingredient.quantity + 1),
-                                )
-                              }
-                            >
-                              +
-                            </Button>
+                            <div className="flex items-center space-x-1">
+                              <Button
+                                className="bg-red-500 px-2 py-1 text-white"
+                                onClick={() =>
+                                  handleIngredientQuantityChange(
+                                    ingredient.name,
+                                    Math.max(1, ingredient.quantity - 1), // No permite bajar a 0 si `required === true`
+                                  )
+                                }
+                              >
+                                -
+                              </Button>
+                              <span>{ingredient.quantity}</span>
+                              <Button
+                                className="bg-green-500 px-2 py-1 text-white"
+                                onClick={() =>
+                                  handleIngredientQuantityChange(
+                                    ingredient.name,
+                                    Math.min(maxQuantity, ingredient.quantity + 1),
+                                  )
+                                }
+                              >
+                                +
+                              </Button>
+                            </div>
+                            {maxQuantity > 1 && (
+                              <span className="text-gray-500">+${fullIngredient.addPrice} c/u</span>
+                            )}
                           </div>
                         );
                       }
@@ -433,39 +495,76 @@ export default function HomePageClient({
 
                       // Caso: Contador para otros ingredientes que no cumplen con las condiciones anteriores
                       return (
-                        <>
+                        <div className="flex items-center gap-2">
                           <span>{fullIngredient.name}</span>
-                          <Button
-                            className="bg-red-500 px-2 py-1 text-white"
-                            onClick={() =>
-                              handleIngredientQuantityChange(
-                                ingredient.name,
-                                isRequired
-                                  ? Math.max(1, ingredient.quantity - 1)
-                                  : Math.max(0, ingredient.quantity - 1), // Si es `required`, no permite bajar a 0
-                              )
-                            }
-                          >
-                            -
-                          </Button>
-                          <span>{ingredient.quantity}</span>
-                          <Button
-                            className="bg-green-500 px-2 py-1 text-white"
-                            onClick={() =>
-                              handleIngredientQuantityChange(
-                                ingredient.name,
-                                Math.min(maxQuantity, ingredient.quantity + 1),
-                              )
-                            }
-                          >
-                            +
-                          </Button>
-                        </>
+                          <div className="flex items-center space-x-1">
+                            <Button
+                              className="bg-red-500 px-2 py-1 text-white"
+                              onClick={() =>
+                                handleIngredientQuantityChange(
+                                  ingredient.name,
+                                  isRequired
+                                    ? Math.max(1, ingredient.quantity - 1)
+                                    : Math.max(0, ingredient.quantity - 1), // Si es `required`, no permite bajar a 0
+                                )
+                              }
+                            >
+                              -
+                            </Button>
+                            <span>{ingredient.quantity}</span>
+                            <Button
+                              className="bg-green-500 px-2 py-1 text-white"
+                              onClick={() =>
+                                handleIngredientQuantityChange(
+                                  ingredient.name,
+                                  Math.min(maxQuantity, ingredient.quantity + 1),
+                                )
+                              }
+                            >
+                              +
+                            </Button>
+                          </div>
+                          {maxQuantity > 1 && (
+                            <span className="text-gray-500">+${fullIngredient.addPrice} c/u</span>
+                          )}
+                        </div>
                       );
                     })()}
                   </div>
                 );
               })}
+            </div>
+          ) : null}
+
+          {selectedProduct.subproduct ? (
+            <div className="mt-4">
+              <p className="font-semibold">El combo viene con guarnición incluida!</p>
+              <div className="mt-2">
+                {subproductsData
+                  .filter((subproduct) => subproduct.active)
+                  .map((subproduct) => (
+                    <label key={subproduct.name} className="flex items-center gap-2">
+                      <input
+                        checked={selectedProduct.subproduct === subproduct.name}
+                        name="subproduct"
+                        type="radio"
+                        value={subproduct.name}
+                        onChange={() => {
+                          setSelectedProduct((prevProduct) =>
+                            prevProduct
+                              ? {...prevProduct, subproduct: subproduct.name}
+                              : prevProduct,
+                          );
+                        }}
+                      />
+                      <span>
+                        {subproduct.name}
+                        {/* Muestra el precio solo si es mayor a cero */}
+                        {subproduct.price > 0 && ` - $${subproduct.price}`}
+                      </span>
+                    </label>
+                  ))}
+              </div>
             </div>
           ) : null}
 

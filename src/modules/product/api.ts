@@ -116,6 +116,7 @@ export default {
                   description,
                   customDescription: row["descripcion personalizada"] || "",
                   image: parseGoogleDriveLink(row.imagen) || "",
+                  subproduct: row.subproducto,
                   price,
                   active: isActive,
                   productIngredients:

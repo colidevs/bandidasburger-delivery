@@ -1,23 +1,26 @@
 import HomePageClient from "./page.client";
 
 import {IngredientsApi} from "@/modules/product/ingredients";
-import {storeApi} from "@/modules/store";
-import {productApi} from "@/modules/product";
-import {ingredientTypesApi} from "@/modules/product/ingredient-types";
-import {productTypesApi} from "@/modules/product/product-types";
+import {StoreApi} from "@/modules/store";
+import {ProductsApi} from "@/modules/product";
+import {IngredientTypesApi} from "@/modules/product/ingredient-types";
+import {ProductTypesApi} from "@/modules/product/product-types";
+import {SubproductsApi} from "@/modules/product/subproducts";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const storeData = await storeApi.fetch();
+  const storeData = await StoreApi.fetch();
 
   const ingredientData = await IngredientsApi.fetch();
 
-  const productData = await productApi.fetch();
+  const subproductsData = await SubproductsApi.fetch();
 
-  const ingredientTypesData = await ingredientTypesApi.fetch();
+  const productData = await ProductsApi.fetch();
 
-  const productTypesData = await productTypesApi.fetch();
+  const ingredientTypesData = await IngredientTypesApi.fetch();
+
+  const productTypesData = await ProductTypesApi.fetch();
 
   return (
     <HomePageClient
@@ -26,6 +29,7 @@ export default async function HomePage() {
       productData={productData}
       productTypesData={productTypesData}
       storeData={storeData}
+      subproductsData={subproductsData}
     />
   );
 }
