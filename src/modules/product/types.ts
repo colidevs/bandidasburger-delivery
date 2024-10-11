@@ -1,3 +1,5 @@
+import type {Ingredient} from "@/modules/product/ingredients";
+
 export interface Product {
   type: string;
   name: string;
@@ -7,10 +9,7 @@ export interface Product {
   subproduct?: string;
   price: number;
   active: boolean;
-  productIngredients?: {
-    name: string;
-    quantity: number;
-  }[];
+  productIngredients: Ingredient[];
 }
 
 export interface CsvProduct {
@@ -22,7 +21,7 @@ export interface CsvProduct {
   subproducto?: string;
   precio: string;
   activo: string;
-  productIngredients?: {
+  productIngredients: {
     ingrediente: string;
     cantidad: string;
   }[];

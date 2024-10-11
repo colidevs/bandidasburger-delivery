@@ -1,7 +1,8 @@
 export interface Ingredient {
   type: string;
   name: string;
-  addPrice: number;
+  price: number;
+  required: boolean;
   max: number;
   active: boolean;
 }
@@ -9,7 +10,7 @@ export interface Ingredient {
 export interface CsvIngredient {
   tipo: string;
   nombre: string;
-  "precio-adicional": string;
+  precio: string;
   max: string;
   activo: string;
 }

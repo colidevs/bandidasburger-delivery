@@ -2,6 +2,10 @@ import Papa from "papaparse";
 
 import {Ingredient, CsvIngredient, INGREDIENTS} from "./"; // Importa la interfaz Ingredient desde donde la hayas definido
 
+function isRequired(tipo: string): boolean {
+  return tipo === "Pan" || tipo === "Medallon";
+}
+
 export default {
   fetch: async (): Promise<Ingredient[]> => {
     const ingredientsUrl = process.env.NEXT_PUBLIC_INGREDIENTS; // Asegúrate de tener esta variable de entorno
@@ -10,32 +14,36 @@ export default {
       throw new Error("INGREDIENTS environment variable is not defined");
     }
 
-    return fetch(ingredientsUrl, {next: {tags: ["ingredients"]}}).then(async (response) => {
-      const csv = await response.text();
+    const response = await fetch(ingredientsUrl, {next: {tags: ["ingredients"]}});
 
-      return new Promise<Ingredient[]>((resolve, reject) => {
-        Papa.parse(csv, {
-          header: true,
-          complete: (results) => {
-            // Aquí realizamos la aserción de tipo usando 'as CsvIngredient[]' para indicarle a TypeScript que los datos tienen el formato CsvIngredient
-            const ingredients = (results.data as CsvIngredient[])
-              .map((row: CsvIngredient) => ({
-                type: row.tipo,
-                name: row.nombre,
-                addPrice: parseFloat(row["precio-adicional"].replace(/[$,]/g, "")), // Convierte el precio a número
-                max: parseInt(row.max, 10), // Asegúrate de convertir max a número
-                active: row.activo.toLowerCase() === "si", // Convierte "si" y "no" a booleano
-              }))
-              .filter((ingredient) => ingredient.active);
+    const text = await response.text();
 
-            resolve(ingredients as Ingredient[]);
-          },
-          error: (error: Error) => {
-            reject(error.message);
-          },
-        });
-      });
-    });
+    const csv = text.split("\n").join("\n");
+
+    const {data} = Papa.parse(csv, {header: true});
+
+    const ingredientsCsv = data as CsvIngredient[];
+
+    const ingredients = ingredientsCsv
+      .map((row: CsvIngredient) => {
+        const obj = {
+          type: row.tipo,
+          name: row.nombre,
+          price: parseFloat(row.precio.replace(/[$,]/g, "")), // Convierte el precio a número
+          required: isRequired(row.tipo), // Asegúrate de definir required y switchable
+          max: parseInt(row.max, 10), // Asegúrate de convertir max a número
+          active: row.activo.toLowerCase() === "si",
+        };
+
+        if (row.tipo === "Medallon") {
+          console.log(obj);
+        }
+
+        return obj;
+      })
+      .filter((ingredient) => ingredient.active);
+
+    return ingredients;
   },
   mock: {
     fetch: (): Promise<Ingredient[]> => {

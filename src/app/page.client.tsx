@@ -1,280 +1,249 @@
-"use client";
-
-import {useState} from "react";
-
 import {Product} from "@/modules/product";
 import {Ingredient} from "@/modules/product/ingredients";
 import {IngredientType} from "@/modules/product/ingredient-types";
 import {ProductType} from "@/modules/product/product-types";
-import {useCart, type CartItem} from "@/modules/cart";
-import {Button} from "@/components/ui/button";
 import {Store} from "@/modules/store";
 import {Subproduct} from "@/modules/product/subproducts";
+import {ProductsCart} from "@/modules/cart";
 
 type HomePageClientProps = {
-  storeData: Store;
-  ingredientData: Ingredient[];
-  productData: Product[];
-  ingredientTypesData: IngredientType[];
-  productTypesData: ProductType[];
-  subproductsData: Subproduct[];
+  store: Store;
+  ingredients: Ingredient[];
+  products: Product[];
+  ingredientTypes: IngredientType[];
+  productTypes: ProductType[];
+  subproducts: Subproduct[];
 };
 
 export default function HomePageClient({
-  storeData,
-  ingredientData,
-  productData,
-  ingredientTypesData,
-  productTypesData,
-  subproductsData,
+  store,
+  ingredients,
+  products,
+  ingredientTypes,
+  productTypes,
+  subproducts,
 }: HomePageClientProps) {
   //* Variables y estados
-  const [{cart, cartList, total}, {addItem, removeItem, updateItem}] = useCart();
-  const [products, setProducts] = useState<Product[]>(productData);
-  const [selectedProduct, setSelectedProduct] = useState<Product>();
-  const [defaultSelectedProduct, setDefaultSelectedProduct] = useState<Product>();
-  const [store, setStore] = useState<Store>(storeData);
-  const [ingredients, setIngredients] = useState<Ingredient[]>(ingredientData);
-  const [productQuantity, setQuantity] = useState(1); // Estado para el contador de cantidad
-  const [currentPrice, setCurrentPrice] = useState(0); // Estado para el precio total dinámico del producto
 
-  // Nuevos estados para eliminar los errores
-  const [paymentMethod, setPaymentMethod] = useState<string>("");
-  const [paymentAmount, setPaymentAmount] = useState<string>("");
-  const [lastPaymentAmount, setLastPaymentAmount] = useState<string>("");
-  const [direction, setDirection] = useState<string>("");
-  const [orderOwner, setOrderOwner] = useState<string>("");
-  const [paymentAmountPlaceholder, setPaymentAmountPlaceholder] = useState<string>(
-    "Ingresa con cuánto abonas",
-  );
+  // const [selectedProduct, setSelectedProduct] = useState<Product>();
 
-  const increaseQuantity = () => setQuantity((prev) => (prev < 5 ? prev + 1 : prev));
-  const decreaseQuantity = () => setQuantity((prev) => (prev > 1 ? prev - 1 : prev));
+  // const [defaultSelectedProduct, setDefaultSelectedProduct] = useState<Product>();
 
-  function handleClickItem(product: Product) {
-    setSelectedProduct({...product});
-    setDefaultSelectedProduct({...product});
-    setCurrentPrice(product.price);
+  // // Nuevos estados para eliminar los errores // Formulario
+  // const [paymentMethod, setPaymentMethod] = useState<string>("");
+  // const [paymentAmount, setPaymentAmount] = useState<string>("");
+  // const [lastPaymentAmount, setLastPaymentAmount] = useState<string>("");
+  // const [direction, setDirection] = useState<string>("");
+  // const [orderOwner, setOrderOwner] = useState<string>("");
+
+  // function handleClickItem(product: Product) {
+  //   setSelectedProduct({...product});
+  //   setDefaultSelectedProduct({...product});
+  // }
+
+  // function calculateTotalPrice() {
+  //   if (!selectedProduct || !defaultSelectedProduct) {
+  //     alert("No se ha seleccionado un producto");
+
+  //     return;
+  //   }
+
+  // selectedProduct.productIngredients?.forEach((ingredient) => {
+  //   const defaultIngredient = defaultSelectedProduct.productIngredients?.find(
+  //     (i) => i.name === ingredient.name,
+  //   );
+  //   const ingredientData = ingredients.find((i) => i.name === ingredient.name);
+
+  //   if (ingredientData && defaultIngredient) {
+  //     const additionalQuantity = ingredient.quantity - defaultIngredient.quantity;
+
+  //     if (additionalQuantity > 0) {
+  //       total += additionalQuantity * ingredientData.addPrice;
+  //     }
+  //   }
+  // });
+
+  // if (selectedProduct.subproduct !== defaultSelectedProduct.subproduct) {
+  //   const selectedSubproduct = subproductsData.find(
+  //     (subproduct) => subproduct.name === selectedProduct.subproduct,
+  //   );
+
+  //   if (selectedSubproduct) {
+  //     total += selectedSubproduct.price;
+  //   }
+  // }
+
+  // setTotal(total);
+  //}
+
+  // function handlePlusItem(id: string, oldCartItem: CartItem) {
+  //   const newItem: CartItem = {...oldCartItem, quantity: oldCartItem.quantity + 1};
+
+  //   updateItem(id, newItem);
+  // }
+
+  function handleAddItem(product: Product) {
+    // if (selectedProduct) {
+    // }
   }
 
-  function calculateTotalPrice() {
-    if (!selectedProduct || !defaultSelectedProduct) return;
+  // function handleRemoveItem(id: string, oldCartItem: CartItem) {
+  //   if (oldCartItem.quantity === 1) {
+  //     removeItem(id);
+  //   } else {
+  //     const newItem: CartItem = {...oldCartItem, quantity: oldCartItem.quantity - 1};
 
-    let total = defaultSelectedProduct.price;
+  //     updateItem(id, newItem);
+  //   }
+  // }
 
-    selectedProduct.productIngredients?.forEach((ingredient) => {
-      const defaultIngredient = defaultSelectedProduct.productIngredients?.find(
-        (i) => i.name === ingredient.name,
-      );
-      const ingredientData = ingredients.find((i) => i.name === ingredient.name);
+  // function handleIngredientQuantityChange(name: string, newQuantity: number) {
+  //   if (selectedProduct) {
+  //     const updatedIngredients = selectedProduct.productIngredients?.map((ingredient) =>
+  //       ingredient.name === name ? {...ingredient, quantity: newQuantity} : ingredient,
+  //     );
 
-      if (ingredientData && defaultIngredient) {
-        const additionalQuantity = ingredient.quantity - defaultIngredient.quantity;
+  //     setSelectedProduct({
+  //       ...selectedProduct,
+  //       productIngredients: updatedIngredients,
+  //     });
 
-        if (additionalQuantity > 0) {
-          total += additionalQuantity * ingredientData.addPrice;
-        }
-      }
-    });
+  //     calculateTotalPrice();
+  //   }
+  // }
 
-    if (selectedProduct.subproduct !== defaultSelectedProduct.subproduct) {
-      const selectedSubproduct = subproductsData.find(
-        (subproduct) => subproduct.name === selectedProduct.subproduct,
-      );
+  // // Al cambiar el subproducto, recalcular el precio total
+  // function handleSubproductChange(newSubproduct: string) {
+  //   if (selectedProduct) {
+  //     setSelectedProduct((prevProduct) => {
+  //       const updatedProduct = prevProduct
+  //         ? {...prevProduct, subproduct: newSubproduct}
+  //         : prevProduct;
 
-      if (selectedSubproduct) {
-        total += selectedSubproduct.price;
-      }
-    }
+  //       calculateTotalPrice();
 
-    setCurrentPrice(total);
-  }
+  //       return updatedProduct;
+  //     });
+  //   }
+  // }
 
-  function handleAddItem(id: string, oldCartItem: CartItem) {
-    const newItem: CartItem = {...oldCartItem, quantity: oldCartItem.quantity + 1};
+  // function getIngredientQuantity(name: string) {
+  //   if (!selectedProduct) return 0;
+  //   const ingredient = selectedProduct.productIngredients?.find((i) => i.name === name);
 
-    updateItem(id, newItem);
-  }
+  //   return ingredient ? ingredient.quantity : 0;
+  // }
 
-  function handleAddProducToCart() {
-    if (selectedProduct) {
-      addItem(crypto.randomUUID(), {...selectedProduct, quantity: productQuantity});
-      setQuantity(1);
-    }
-  }
+  // function handlePaymentMethodChange(evt: React.ChangeEvent<HTMLInputElement>) {
+  //   // const selectedPaymentMethod = evt.target.value;
+  //   // if (selectedPaymentMethod === "Mercado Pago") {
+  //   //   setPaymentAmountPlaceholder("Solo efectivo");
+  //   //   setLastPaymentAmount(paymentAmount);
+  //   //   setPaymentAmount("");
+  //   // } else {
+  //   //   setPaymentAmount(lastPaymentAmount || "");
+  //   //   setPaymentAmountPlaceholder("Ingresa con cuánto abonas");
+  //   // }
+  //   // setPaymentMethod(selectedPaymentMethod);
+  // }
 
-  function handleRemoveItem(id: string, oldCartItem: CartItem) {
-    if (oldCartItem.quantity === 1) {
-      removeItem(id);
-    } else {
-      const newItem: CartItem = {...oldCartItem, quantity: oldCartItem.quantity - 1};
+  // function handlePaymentAmountChange(evt: React.ChangeEvent<HTMLInputElement>) {
+  //   const value = evt.target.value;
 
-      updateItem(id, newItem);
-    }
-  }
+  //   if (/^\d*$/.test(value)) {
+  //     setPaymentAmount(value);
+  //   }
+  // }
 
-  function handleIngredientQuantityChange(name: string, newQuantity: number) {
-    if (selectedProduct) {
-      const updatedIngredients = selectedProduct.productIngredients?.map((ingredient) =>
-        ingredient.name === name ? {...ingredient, quantity: newQuantity} : ingredient,
-      );
+  // function handleDirectionChanged(evt: React.ChangeEvent<HTMLInputElement>) {
+  //   setDirection(evt.target.value);
+  // }
 
-      setSelectedProduct({
-        ...selectedProduct,
-        productIngredients: updatedIngredients,
-      });
+  // function handleOrderOwnerChanged(evt: React.ChangeEvent<HTMLInputElement>) {
+  //   setOrderOwner(evt.target.value);
+  // }
 
-      calculateTotalPrice();
-    }
-  }
+  // function handleOrderProducts() {
+  //   const products = cartList.map((burga) => burga[1]);
+  //   let mensaje;
 
-  // Al cambiar el subproducto, recalcular el precio total
-  function handleSubproductChange(newSubproduct: string) {
-    if (selectedProduct) {
-      setSelectedProduct((prevProduct) => {
-        const updatedProduct = prevProduct
-          ? {...prevProduct, subproduct: newSubproduct}
-          : prevProduct;
+  //   if (
+  //     (paymentMethod === "Efectivo" || paymentMethod === "Mercado Pago") &&
+  //     direction &&
+  //     orderOwner &&
+  //     (paymentMethod === "Efectivo" ? paymentAmount && Number(paymentAmount) > total : true)
+  //   ) {
+  //     if (paymentMethod === "Efectivo") {
+  //       mensaje =
+  //         `*Pedido:*\n` +
+  //         products
+  //           .map((burga) => {
+  //             return `*${burga.name} (${burga.quantity}) - ${burga.quantity * burga.price}`;
+  //           })
+  //           .join("\n") +
+  //         `\n\n--\n\n*Datos:*\n* Forma de pago: ${paymentMethod}\n* Con cuanto abonas: ${paymentAmount}\n* Dirección de envío: ${direction}\n* Pedido a nombre de: ${orderOwner}\n\n--\n\n*Total (envío incluido): $${total}*\n*Vuelto: $${Number(paymentAmount) - total}*`;
+  //     } else {
+  //       mensaje =
+  //         `*Pedido:*\n` +
+  //         products
+  //           .map((burga) => {
+  //             return `*${burga.name} (${burga.quantity}) - ${burga.quantity * burga.price}`;
+  //           })
+  //           .join("\n") +
+  //         `\n\n--\n\n*Datos:*\n* Forma de pago: ${paymentMethod}\n* Dirección de envío: ${direction}\n* Pedido a nombre de: ${orderOwner}\n\n--\n\n*Total (envío incluido): $${total}*`;
+  //     }
 
-        calculateTotalPrice();
+  //     console.log(mensaje);
+  //   }
+  // }
 
-        return updatedProduct;
-      });
-    }
-  }
+  // function formatCartIngredientName(name: string, quantity: number) {
+  //   if (name.toLowerCase().startsWith("medallon")) {
+  //     if (quantity === 1) return "Medallon de 150gr";
+  //     if (quantity === 2) return "Doble medallon de 110gr";
+  //     if (quantity === 3) return "Triple medallon de 110gr";
+  //     if (quantity === 4) return "Cuadruple medallon de 110gr";
+  //     if (quantity === 5) return "Quintuple medallon de 110gr";
+  //     if (quantity === 6) return "Sextuple medallon de 110gr";
+  //     if (quantity === 7) return "Septuple medallon de 110gr";
+  //     if (quantity === 8) return "Octuple medallon de 110gr";
 
-  function getIngredientQuantity(name: string) {
-    if (!selectedProduct) return 0;
-    const ingredient = selectedProduct.productIngredients?.find((i) => i.name === name);
+  //     return `${quantity} medallones de 110gr`;
+  //   }
 
-    return ingredient ? ingredient.quantity : 0;
-  }
+  //   if (name.toLowerCase().startsWith("feta")) {
+  //     const ingredientName = name.slice(5).trim();
 
-  function handlePaymentMethodChange(evt: React.ChangeEvent<HTMLInputElement>) {
-    const selectedPaymentMethod = evt.target.value;
+  //     return quantity === 1
+  //       ? `${quantity} feta de ${ingredientName}`
+  //       : quantity > 1
+  //         ? `${quantity} fetas de ${ingredientName}`
+  //         : `Sin fetas de ${ingredientName}`;
+  //   }
 
-    if (selectedPaymentMethod === "Mercado Pago") {
-      setPaymentAmountPlaceholder("Solo efectivo");
-      setLastPaymentAmount(paymentAmount);
-      setPaymentAmount("");
-    } else {
-      setPaymentAmount(lastPaymentAmount || "");
-      setPaymentAmountPlaceholder("Ingresa con cuánto abonas");
-    }
-    setPaymentMethod(selectedPaymentMethod);
-  }
+  //   if (name.toLowerCase().startsWith("medida")) {
+  //     return quantity === 1
+  //       ? `${quantity} medida de bacon`
+  //       : quantity > 1
+  //         ? `${quantity} medidas de bacon`
+  //         : `Sin medidas de bacon`;
+  //   }
 
-  function handlePaymentAmountChange(evt: React.ChangeEvent<HTMLInputElement>) {
-    const value = evt.target.value;
+  //   if (name.toLowerCase().startsWith("pan")) {
+  //     return name; // Solo muestra el nombre del pan sin la cantidad
+  //   }
 
-    if (/^\d*$/.test(value)) {
-      setPaymentAmount(value);
-    }
-  }
+  //   // Si quantity es 0, mostrar "Sin [nombre]"
+  //   if (quantity === 0) {
+  //     return `Sin ${name}`;
+  //   }
 
-  function handleDirectionChanged(evt: React.ChangeEvent<HTMLInputElement>) {
-    setDirection(evt.target.value);
-  }
-
-  function handleOrderOwnerChanged(evt: React.ChangeEvent<HTMLInputElement>) {
-    setOrderOwner(evt.target.value);
-  }
-
-  function handleOrderProducts() {
-    const products = cartList.map((burga) => burga[1]);
-    let mensaje;
-
-    if (
-      (paymentMethod === "Efectivo" || paymentMethod === "Mercado Pago") &&
-      direction &&
-      orderOwner &&
-      (paymentMethod === "Efectivo" ? paymentAmount && Number(paymentAmount) > total : true)
-    ) {
-      if (paymentMethod === "Efectivo") {
-        mensaje =
-          `*Pedido:*\n` +
-          products
-            .map((burga) => {
-              return `*${burga.name} (${burga.quantity}) - ${burga.quantity * burga.price}`;
-            })
-            .join("\n") +
-          `\n\n--\n\n*Datos:*\n* Forma de pago: ${paymentMethod}\n* Con cuanto abonas: ${paymentAmount}\n* Dirección de envío: ${direction}\n* Pedido a nombre de: ${orderOwner}\n\n--\n\n*Total (envío incluido): $${total}*\n*Vuelto: $${Number(paymentAmount) - total}*`;
-      } else {
-        mensaje =
-          `*Pedido:*\n` +
-          products
-            .map((burga) => {
-              return `*${burga.name} (${burga.quantity}) - ${burga.quantity * burga.price}`;
-            })
-            .join("\n") +
-          `\n\n--\n\n*Datos:*\n* Forma de pago: ${paymentMethod}\n* Dirección de envío: ${direction}\n* Pedido a nombre de: ${orderOwner}\n\n--\n\n*Total (envío incluido): $${total}*`;
-      }
-
-      console.log(mensaje);
-    }
-  }
-
-  function formatCartIngredientName(name, quantity) {
-    if (name.toLowerCase().startsWith("medallon")) {
-      if (quantity === 1) return "Medallon de 150gr";
-      if (quantity === 2) return "Doble medallon de 110gr";
-      if (quantity === 3) return "Triple medallon de 110gr";
-      if (quantity === 4) return "Cuadruple medallon de 110gr";
-      if (quantity === 5) return "Quintuple medallon de 110gr";
-      if (quantity === 6) return "Sextuple medallon de 110gr";
-      if (quantity === 7) return "Septuple medallon de 110gr";
-      if (quantity === 8) return "Octuple medallon de 110gr";
-
-      return `${quantity} medallones de 110gr`;
-    }
-
-    if (name.toLowerCase().startsWith("feta")) {
-      const ingredientName = name.slice(5).trim();
-
-      return quantity === 1
-        ? `${quantity} feta de ${ingredientName}`
-        : quantity > 1
-          ? `${quantity} fetas de ${ingredientName}`
-          : `Sin fetas de ${ingredientName}`;
-    }
-
-    if (name.toLowerCase().startsWith("medida")) {
-      return quantity === 1
-        ? `${quantity} medida de bacon`
-        : quantity > 1
-          ? `${quantity} medidas de bacon`
-          : `Sin medidas de bacon`;
-    }
-
-    if (name.toLowerCase().startsWith("pan")) {
-      return name; // Solo muestra el nombre del pan sin la cantidad
-    }
-
-    // Si quantity es 0, mostrar "Sin [nombre]"
-    if (quantity === 0) {
-      return `Sin ${name}`;
-    }
-
-    return `${quantity} ${name}`;
-  }
+  //   return `${quantity} ${name}`;
+  // }
 
   return (
     <section className="flex gap-6">
-      <ul className="flex flex-1 flex-col gap-8">
-        {products.map((product) => (
-          <li key={product.name} className="border">
-            <div className="flex justify-between" onClick={() => handleClickItem(product)}>
-              <div className="flex flex-col">
-                <h3>{product.name}</h3>
-                <p>{product.description}</p>
-                <p>{product.price}</p>
-              </div>
-              <img alt={"imagen de " + product.name} src={product.image} width={144} />
-            </div>
-          </li>
-        ))}
-      </ul>
-      <aside className="w-4xl border p-8">
+      {/* <aside className="w-4xl border p-8">
         {cart.size !== 0 ? (
           <article>
             <h2>Carrito!</h2>
@@ -343,8 +312,8 @@ export default function HomePageClient({
           <p>No hay productos</p>
         )}
         <Button onClick={handleOrderProducts}>Finalizar Pedido </Button>
-      </aside>
-      {selectedProduct ? (
+      </aside> */}
+      {/* {selectedProduct ? (
         <div className="border p-4">
           <h2 className="text-xl font-semibold">Editando: {selectedProduct.name}</h2>
           <p className="text-wrap ">{selectedProduct.description}</p>
@@ -364,7 +333,7 @@ export default function HomePageClient({
 
                       if (!fullIngredient) return null;
 
-                      const ingredientType = ingredientTypesData.find(
+                      const ingredientType = ingredientTypes.find(
                         (type) => type.name === fullIngredient.type,
                       );
 
@@ -391,8 +360,8 @@ export default function HomePageClient({
 
                                 handleIngredientQuantityChange(newName, 1);
 
-                                setSelectedProduct((prevProduct) => {
-                                  if (!prevProduct) return null;
+                                setSelectedProduct((prevProduct: Product | undefined) => {
+                                  if (!prevProduct) return undefined;
                                   const updatedIngredients = prevProduct.productIngredients?.map(
                                     (ing) =>
                                       ing.name === ingredient.name ? {...ing, name: newName} : ing,
@@ -425,8 +394,8 @@ export default function HomePageClient({
 
                                 handleIngredientQuantityChange(newName, ingredient.quantity);
 
-                                setSelectedProduct((prevProduct) => {
-                                  if (!prevProduct) return null;
+                                setSelectedProduct((prevProduct: Product | undefined) => {
+                                  if (!prevProduct) return undefined;
                                   const updatedIngredients = prevProduct.productIngredients?.map(
                                     (ing) =>
                                       ing.name === ingredient.name ? {...ing, name: newName} : ing,
@@ -540,7 +509,7 @@ export default function HomePageClient({
             <div className="mt-4">
               <p className="font-semibold">El combo viene con guarnición incluida!</p>
               <div className="mt-2">
-                {subproductsData
+                {subproducts
                   .filter((subproduct) => subproduct.active)
                   .map((subproduct) => (
                     <label key={subproduct.name} className="flex items-center gap-2">
@@ -559,7 +528,6 @@ export default function HomePageClient({
                       />
                       <span>
                         {subproduct.name}
-                        {/* Muestra el precio solo si es mayor a cero */}
                         {subproduct.price > 0 && ` - $${subproduct.price}`}
                       </span>
                     </label>
@@ -569,11 +537,11 @@ export default function HomePageClient({
           ) : null}
 
           <Button onClick={handleAddProducToCart}>Agregar al carrito</Button>
-          <Button onClick={decreaseQuantity}>-</Button>
-          <span style={{margin: "0 10px"}}>{productQuantity}</span>
-          <Button onClick={increaseQuantity}>+</Button>
+          <Button onClick={() => {}}>-</Button>
+          <span style={{margin: "0 10px"}}>{}</span>
+          <Button onClick={() => {}}>+</Button>
         </div>
-      ) : null}
+      ) : null} */}
     </section>
   );
 }

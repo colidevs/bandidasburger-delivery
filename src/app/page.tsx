@@ -1,35 +1,28 @@
-import HomePageClient from "./page.client";
-
 import {IngredientsApi} from "@/modules/product/ingredients";
 import {StoreApi} from "@/modules/store";
-import {ProductsApi} from "@/modules/product";
+import {type Product, ProductsApi} from "@/modules/product";
 import {IngredientTypesApi} from "@/modules/product/ingredient-types";
 import {ProductTypesApi} from "@/modules/product/product-types";
 import {SubproductsApi} from "@/modules/product/subproducts";
+import {ProductsCart} from "@/modules/cart";
 
-export const dynamic = "force-dynamic";
+const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const storeData = await StoreApi.fetch();
-
-  const ingredientData = await IngredientsApi.fetch();
-
-  const subproductsData = await SubproductsApi.fetch();
-
-  const productData = await ProductsApi.fetch();
-
-  const ingredientTypesData = await IngredientTypesApi.fetch();
-
-  const productTypesData = await ProductTypesApi.fetch();
+  const store = await StoreApi.fetch();
+  const ingredients = await IngredientsApi.fetch();
+  const subproducts = await SubproductsApi.fetch();
+  const products = await ProductsApi.fetch();
+  const ingredientTypes = await IngredientTypesApi.fetch();
+  const productTypes = await ProductTypesApi.fetch();
 
   return (
-    <HomePageClient
-      ingredientData={ingredientData}
-      ingredientTypesData={ingredientTypesData}
-      productData={productData}
-      productTypesData={productTypesData}
-      storeData={storeData}
-      subproductsData={subproductsData}
-    />
+    <section className="flex gap-6">
+      <ProductsCart
+        className="flex flex-1 flex-col gap-8"
+        ingredients={ingredients}
+        products={products}
+      />
+    </section>
   );
 }

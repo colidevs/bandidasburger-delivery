@@ -11,7 +11,7 @@ function convertCsvStoreToStore(csvStore: CsvStore): IStore {
     instagram: csvStore.instagram,
     whatsapp: csvStore.whatsapp,
     phone: csvStore.celular,
-    shipping: csvStore.envio,
+    shipping: Number(csvStore.envio),
   };
 }
 

@@ -9,6 +9,9 @@ import {STORE} from "../store";
 import {Button} from "@/components/ui/button";
 
 interface Context {
+  staticValues: {
+    shipping: number;
+  };
   state: {
     cart: Cart;
     cartList: [string, CartItem][];
@@ -24,44 +27,48 @@ interface Context {
 
 const CartContext = createContext({} as Context);
 
-export function CartProviderClient({children}: {children: React.ReactNode}) {
+export function CartProviderClient({
+  children,
+  shipping,
+}: {
+  children: React.ReactNode;
+  shipping: number;
+}) {
   const [cart, setCart] = useState<Cart>(() => new Map());
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
 
   const cartList = useMemo(() => Array.from(cart), [cart]);
 
   const total = useMemo(
-    () =>
-      Array.from(cart.values()).reduce((acc, i) => acc + i.quantity * i.price, 0) + STORE.shipping,
-    [cart],
+    () => Array.from(cart.values()).reduce((acc, i) => acc + i.quantity * i.price, 0) + shipping,
+    [cart, shipping],
   );
   const quantity = useMemo(
     () => Array.from(cart.values()).reduce((acc, i) => acc + i.quantity, 0),
     [cart],
   );
 
+  // (id: string, value: CartItem) => {
+  //   // Encontrar un producto con el mismo nombre y los mismos ingredientes
+  //   const existingEntry = Array.from(cart.entries()).find(
+  //     ([, item]) =>
+  //       item.name === value.name &&
+  //       JSON.stringify(item.productIngredients) === JSON.stringify(value.productIngredients),
+  //   );
+
+  //   if (existingEntry) {
+  //     // Si hay un producto idéntico, actualizar su cantidad
+  //     const [existingId, existingItem] = existingEntry;
+
+  //     cart.set(existingId, {...existingItem, quantity: existingItem.quantity + value.quantity});
+  //   } else {
+  //     // Si no hay un producto idéntico, agregarlo como nuevo ítem
+  //     cart.set(id, value);
+  //     setCart(new Map(cart));
+  //   }
   const addItem = useCallback(
-    // (id: string, value: CartItem) => {
-    //   cart.set(id, value);
-
-    //   setCart(new Map(cart));
     (id: string, value: CartItem) => {
-      // Encontrar un producto con el mismo nombre y los mismos ingredientes
-      const existingEntry = Array.from(cart.entries()).find(
-        ([, item]) =>
-          item.name === value.name &&
-          JSON.stringify(item.productIngredients) === JSON.stringify(value.productIngredients),
-      );
-
-      if (existingEntry) {
-        // Si hay un producto idéntico, actualizar su cantidad
-        const [existingId, existingItem] = existingEntry;
-
-        cart.set(existingId, {...existingItem, quantity: existingItem.quantity + value.quantity});
-      } else {
-        // Si no hay un producto idéntico, agregarlo como nuevo ítem
-        cart.set(id, value);
-      }
+      cart.set(id, value);
 
       setCart(new Map(cart));
     },
@@ -86,6 +93,7 @@ export function CartProviderClient({children}: {children: React.ReactNode}) {
     [cart],
   );
 
+  const staticValues = {shipping};
   const state = useMemo(
     () => ({cart, cartList, total, quantity}),
     [cart, cartList, total, quantity],
@@ -96,7 +104,7 @@ export function CartProviderClient({children}: {children: React.ReactNode}) {
   );
 
   return (
-    <CartContext.Provider value={{state, actions}}>
+    <CartContext.Provider value={{staticValues, state, actions}}>
       <>
         {children}
         {Boolean(quantity) && (
@@ -129,8 +137,8 @@ export function CartProviderClient({children}: {children: React.ReactNode}) {
   );
 }
 
-export function useCart(): [Context["state"], Context["actions"]] {
-  const {state, actions} = useContext(CartContext);
+export function useCart(): [Context["staticValues"], Context["state"], Context["actions"]] {
+  const {staticValues, state, actions} = useContext(CartContext);
 
-  return [state, actions];
+  return [staticValues, state, actions];
 }
