@@ -297,7 +297,7 @@ export function CartProviderClient({children, store}: {children: React.ReactNode
                     {quantity} item
                   </p>
                 </div>
-                <p className="leading-6">{total}</p>
+                <p className="leading-6">$ {total}</p>
               </div>
             </Button>
           </div>
@@ -416,7 +416,10 @@ function Order() {
             {/* Mostrar los ingredientes adicionales */}
             {item.productIngredients && item.productIngredients.length > 0 ? (
               <div className="ml-16 mt-2 text-sm text-muted-foreground">
-                <p className="font-semibold">Ingredientes adicionales:</p>
+                {item.productIngredients.some((ing) => ing.additionalQuantity! > 0) ? (
+                  <p className="font-semibold">Ingredientes adicionales:</p>
+                ) : null}
+
                 <ul className="list-disc pl-4">
                   {item.productIngredients
                     .filter((ing) => ing.additionalQuantity! > 0)
