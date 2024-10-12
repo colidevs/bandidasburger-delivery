@@ -79,9 +79,7 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
   const {customPrice, setCustomPrice} = useCustomPrice();
   const [open, setOpen] = useState<boolean>(false);
 
-  const [additionalIngredients, setAdditionalIngredients] = useState<Map<string, number>>(
-    new Map(),
-  );
+  const [subtotals, setSubtotals] = useState<{[key: string]: number}>({});
 
   function addToCart(product: Product | null, quantity: number) {
     if (!product) {
@@ -96,7 +94,7 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
   function handleOnClickItem(product: Product) {
     setProduct(product);
     setCustomPrice(product.price);
-    setAdditionalIngredients(new Map());
+    setSubtotals({});
   }
 
   function handleClose(onClose?: () => void) {
@@ -123,32 +121,71 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
     //   setCustomPrice(basePrice);
     // }
 
-    setAdditionalIngredients((prev) => {
-      const updatedIngredients = new Map(prev);
+    // setAdditionalIngredients((prev) => {
+    //   const updatedIngredients = new Map(prev);
 
-      // Si la cantidad es mayor a la base, se agrega/modifica el ingrediente
+    //   // Si la cantidad es mayor a la base, se agrega/modifica el ingrediente
+    //   if (quantity > baseQuantity) {
+    //     updatedIngredients.set(ingredient.name, quantity - baseQuantity);
+    //   } else {
+    //     // Si la cantidad es igual o menor a la base, eliminamos el ingrediente de la lista
+    //     updatedIngredients.delete(ingredient.name);
+    //   }
+
+    //   // Calculamos el precio adicional
+    //   let additionalPrice = 0;
+
+    //   updatedIngredients.forEach((extraQuantity, name) => {
+    //     const ingredientToAdd = ingredients.find((ing) => ing.name === name);
+
+    //     if (ingredientToAdd) {
+    //       additionalPrice += ingredientToAdd.price * extraQuantity;
+    //     }
+    //   });
+
+    //   // Actualizamos el precio personalizado
+    //   setCustomPrice(basePrice + additionalPrice);
+
+    //   return updatedIngredients;
+    // });
+
+    setSubtotals((prev) => {
+      const updatedSubtotals = {...prev};
+
+      // Si la cantidad es mayor a la base, calculamos el subtotal del ingrediente
       if (quantity > baseQuantity) {
-        updatedIngredients.set(ingredient.name, quantity - baseQuantity);
+        const additionalQuantity = quantity - baseQuantity;
+
+        updatedSubtotals[ingredient.name] = ingredient.price * additionalQuantity;
       } else {
-        // Si la cantidad es igual o menor a la base, eliminamos el ingrediente de la lista
-        updatedIngredients.delete(ingredient.name);
+        // Si la cantidad es igual o menor a la base, eliminamos el subtotal del ingrediente
+        delete updatedSubtotals[ingredient.name];
       }
 
-      // Calculamos el precio adicional
+      // Calculamos el precio personalizado basado en los subtotales actuales
       let additionalPrice = 0;
 
-      updatedIngredients.forEach((extraQuantity, name) => {
-        const ingredientToAdd = ingredients.find((ing) => ing.name === name);
+      for (const key in updatedSubtotals) {
+        additionalPrice += updatedSubtotals[key];
+      }
 
-        if (ingredientToAdd) {
-          additionalPrice += ingredientToAdd.price * extraQuantity;
-        }
-      });
+      // El precio personalizado es el precio base más el precio adicional de los ingredientes
+      setCustomPrice(product!.price + additionalPrice);
 
-      // Actualizamos el precio personalizado
-      setCustomPrice(basePrice + additionalPrice);
+      return updatedSubtotals;
+    });
+  }
 
-      return updatedIngredients;
+  function handleQuantityChange(newQuantity: number) {
+    setCustomQuantity(newQuantity);
+
+    // Recalculamos el precio personalizado considerando los subtotales y la nueva cantidad de productos
+    setCustomPrice((prevPrice) => {
+      const basePrice = product!.price * newQuantity;
+      const additionalPrice =
+        Object.values(subtotals).reduce((acc, subtotal) => acc + subtotal, 0) * newQuantity;
+
+      return basePrice + additionalPrice;
     });
   }
 
@@ -208,7 +245,7 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
         </ScrollArea>
         <footer className="sticky bottom-0 space-y-4 border-t bg-background">
           <div className="flex items-center justify-between px-4">
-            <Counter
+            {/* <Counter
               value={customQuantity}
               onChange={(x) => {
                 setCustomQuantity(x);
@@ -219,6 +256,9 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
                 });
               }}
             >
+              Cantidad
+            </Counter> */}
+            <Counter value={customQuantity} onChange={handleQuantityChange}>
               Cantidad
             </Counter>
           </div>
