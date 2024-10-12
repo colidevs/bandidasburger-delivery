@@ -4,16 +4,26 @@ import type {Cart, CartItem} from "./types";
 
 import {createContext, useCallback, useContext, useMemo, useState} from "react";
 
-import {STORE} from "../store";
+import {type Store} from "../store";
 
 import {Button} from "@/components/ui/button";
 import {Sheet, SheetContent, SheetFooter, SheetHeader} from "@/components/ui/sheet";
 import {ScrollArea} from "@/components/ui/scroll-area";
 import {Separator} from "@/components/ui/separator";
+import {Input} from "@/components/ui/input";
+import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";
+import {Label} from "@/components/ui/label";
 
+interface OrderDetails {
+  paymentMethod: "Efectivo" | "MercadoPago";
+  address: string;
+  customerName: string;
+  cashAmount: number;
+  totalAmount: number;
+}
 interface Context {
   staticValues: {
-    shipping: number;
+    store: Store;
   };
   state: {
     cart: Cart;
@@ -30,21 +40,15 @@ interface Context {
 
 const CartContext = createContext({} as Context);
 
-export function CartProviderClient({
-  children,
-  shipping,
-}: {
-  children: React.ReactNode;
-  shipping: number;
-}) {
+export function CartProviderClient({children, store}: {children: React.ReactNode; store: Store}) {
   const [cart, setCart] = useState<Cart>(() => new Map());
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
 
   const cartList = useMemo(() => Array.from(cart), [cart]);
 
   const total = useMemo(
-    () => Array.from(cart.values()).reduce((acc, i) => acc + i.quantity * i.price, 0) + shipping,
-    [cart, shipping],
+    () => Array.from(cart.values()).reduce((acc, i) => acc + i.quantity * i.price, 0),
+    [cart],
   );
   const quantity = useMemo(
     () => Array.from(cart.values()).reduce((acc, i) => acc + i.quantity, 0),
@@ -96,7 +100,7 @@ export function CartProviderClient({
     [cart],
   );
 
-  const staticValues = {shipping};
+  const staticValues: Context["staticValues"] = {store: store};
   const state = useMemo(
     () => ({cart, cartList, total, quantity}),
     [cart, cartList, total, quantity],
@@ -106,8 +110,81 @@ export function CartProviderClient({
     [addItem, removeItem, updateItem],
   );
 
+  function generateWhatsAppOrderMessage(
+    cartItems: [string, CartItem][],
+    orderDetails: OrderDetails,
+  ) {
+    let message = "Pedido:\n";
+
+    let totalPrice = 0;
+
+    cartItems.forEach(([id, item]) => {
+      const {name, quantity, price, productIngredients} = item;
+
+      let description = `${quantity} ${name}`;
+
+      // Agregar detalles de personalización si los hay
+      const customizations = productIngredients
+        .filter((ing) => ing.isSelected)
+        .map((ing) => {
+          const detail = `${ing.additionalQuantity! > 0 ? ing.additionalQuantity! + ing.quantity! : ing.quantity} ${ing.name}`;
+
+          // Remover el "0 " si no es necesario
+          return detail.trim();
+        });
+
+      description += ` : ${customizations.join(", ")}`;
+
+      const nonIng = productIngredients.filter((ing) => !ing.isSelected);
+
+      if (nonIng.length > 0) {
+        description += ` (sin ${nonIng.map((ing) => ing.name).join(", ")})`;
+      }
+
+      description += ` > $${price * quantity}`;
+      message += `${description}\n`;
+
+      totalPrice += price * quantity;
+    });
+
+    message += `\nDatos:\n`;
+    message += `Forma de pago: ${orderDetails.paymentMethod}\n`;
+    message += `Dirección de envío: ${orderDetails.address}\n`;
+    if (orderDetails.paymentMethod.toLowerCase() === "efectivo") {
+      message += `Con cuánto abonás: $${orderDetails.cashAmount}\n`;
+    }
+    message += `Pedido a nombre de: ${orderDetails.customerName}\n`;
+
+    message += `Total (incluye envío): $${orderDetails.totalAmount}\n`;
+
+    if (orderDetails.paymentMethod.toLowerCase() === "efectivo") {
+      const change = orderDetails.cashAmount - orderDetails.totalAmount;
+
+      message += `Vuelto: $${change > 0 ? change : 0}\n`;
+    }
+
+    return message;
+  }
+
+  const [address, setAddress] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"Efectivo" | "MercadoPago">("MercadoPago");
+  const [cashAmount, setCashAmount] = useState(0);
+  const [customerName, setCustomerName] = useState("");
+
   function Checkout() {
+    const msg = generateWhatsAppOrderMessage(cartList, {
+      paymentMethod: paymentMethod,
+      address: address,
+      customerName: customerName,
+      cashAmount: cashAmount,
+      totalAmount: total + store.shipping,
+    });
+
     console.log(cartList);
+
+    const wpp = `https://wa.me/${store.phone}?text=${encodeURIComponent(msg)}`;
+
+    window.open(wpp, "_blank");
   }
 
   return (
@@ -142,18 +219,52 @@ export function CartProviderClient({
         {isCartOpen ? (
           <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
             <SheetContent className="flex h-full w-full flex-col px-0 sm:pt-0">
-              <SheetHeader>
-                <div className="mt-4 flex items-center justify-between">
-                  <h2 className="text-xl font-bold">Tu pedido</h2>
-                </div>
-              </SheetHeader>
+              <ScrollArea className="flex-grow overflow-y-auto px-4">
+                <SheetHeader>
+                  <div className="mt-4 flex items-center justify-between">
+                    <h2 className="text-xl font-bold">Tu pedido</h2>
+                  </div>
+                </SheetHeader>
+                <Order />
+                <Separator className="my-4" />
+                <section className="flex flex-col gap-4">
+                  <h3 className="text-lg font-semibold">Detalles del pedido</h3>
+                  <RadioGroup
+                    defaultValue="MercadoPago"
+                    onValueChange={(e) => setPaymentMethod(e as "Efectivo" | "MercadoPago")}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem id="r1" value="MercadoPago" />
+                      <Label htmlFor="r1">MercadoPago</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem id="r2" value="Efectivo" />
+                      <Label htmlFor="r2">Efectivo</Label>
+                    </div>
+                  </RadioGroup>
 
-              <Order />
-
+                  <Input
+                    placeholder="Nombre"
+                    type="text"
+                    onChange={(e) => setCustomerName(e.target.value)}
+                  />
+                  <Input
+                    id="address"
+                    placeholder="Direccion"
+                    type="text"
+                    onChange={(e) => setAddress(e.target.value)}
+                  />
+                  <Input
+                    placeholder="Con cuanto abonas?"
+                    type="number"
+                    onChange={(e) => setCashAmount(parseInt(e.target.value))}
+                  />
+                </section>
+              </ScrollArea>
               <footer className="sticky bottom-0 space-y-4 border-t bg-background">
                 <div className="flex items-center justify-between px-4 pt-4">
-                  <p className="text-lg font-semibold">Total</p>
-                  <p className="text-lg font-semibold">$ {total}</p>
+                  <p className="text-lg font-semibold">Total (incluye envio)</p>
+                  <p className="text-lg font-semibold">$ {total + store.shipping}</p>
                 </div>
                 <Separator />
                 <div className="flex gap-2 px-4">
@@ -184,31 +295,53 @@ function Order() {
 
   return (
     <section>
-      <ul className="divide-y divide-gray-200">
+      <ul className="divide-y divide-muted">
         {cartList.map(([id, item]) => (
-          <li key={id} className="flex items-center justify-between py-4">
-            <div className="flex items-center gap-4">
-              <img alt={item.name} className="h-12 w-12 rounded-sm object-cover" src={item.image} />
-              <div className="flex flex-col">
-                <p className="text-lg font-semibold">{item.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {item.quantity} x {item.price}
-                </p>
+          <li key={id} className="flex flex-col gap-2 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <img
+                  alt={item.name}
+                  className="h-12 w-12 rounded-sm object-cover"
+                  src={item.image}
+                />
+                <div className="flex flex-col">
+                  <p className="text-lg font-semibold">{item.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {item.quantity} x ${item.price}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <Button
+                  aria-label="Eliminar"
+                  className="p-2"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    removeItem(id);
+                  }}
+                >
+                  Eliminar
+                </Button>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <Button
-                aria-label="Eliminar"
-                className="p-2"
-                size="sm"
-                variant="ghost"
-                onClick={() => {
-                  removeItem(id);
-                }}
-              >
-                Eliminar
-              </Button>
-            </div>
+
+            {/* Mostrar los ingredientes adicionales */}
+            {item.productIngredients && item.productIngredients.length > 0 ? (
+              <div className="ml-16 mt-2 text-sm text-muted-foreground">
+                <p className="font-semibold">Ingredientes adicionales:</p>
+                <ul className="list-disc pl-4">
+                  {item.productIngredients
+                    .filter((ing) => ing.additionalQuantity! > 0)
+                    .map((ing) => (
+                      <li key={ing.name}>
+                        {ing.name} (cantidad: {ing.additionalQuantity}) - ${ing.price}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            ) : null}
           </li>
         ))}
       </ul>

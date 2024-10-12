@@ -40,7 +40,8 @@ export default async function RootLayout({children}: {children: React.ReactNode}
                   src={store.logo}
                 />
               </div>
-              <div className="sm:mt- text-center0.5 flex flex-col items-center gap-4 sm:items-start sm:gap-2 sm:text-left">
+              {/* sm:mt- text-center0.5 flex flex-col items-center gap-4 sm:items-start sm:gap-2 sm:text-left */}
+              <div className="flex flex-col items-center gap-4 text-center sm:mt-2 sm:items-start sm:gap-2 sm:text-left">
                 <div className="flex flex-col items-center gap-4 text-center sm:items-start sm:gap-2 sm:text-left">
                   <h2 className="-mb-2 text-3xl font-bold sm:mb-1 sm:text-4xl">{store.name}</h2>
                   <p className="font-normal leading-tight text-muted-foreground">
@@ -73,7 +74,7 @@ export default async function RootLayout({children}: {children: React.ReactNode}
             </div>
           </header>
           <main className="py-8">
-            <CartProviderClient shipping={store.shipping}>{children}</CartProviderClient>
+            <CartProviderClient store={store}>{children}</CartProviderClient>
           </main>
           <footer className="text-center leading-[4rem] opacity-70">
             © {new Date().getFullYear()} bandidasburger-delivery

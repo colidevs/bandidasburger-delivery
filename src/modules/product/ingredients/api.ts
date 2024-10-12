@@ -1,6 +1,6 @@
 import Papa from "papaparse";
 
-import {Ingredient, CsvIngredient, INGREDIENTS} from "./"; // Importa la interfaz Ingredient desde donde la hayas definido
+import {Ingredient, CsvIngredient} from "./"; // Importa la interfaz Ingredient desde donde la hayas definido
 
 function isRequired(tipo: string): boolean {
   return tipo === "Pan" || tipo === "Medallon";
@@ -40,11 +40,5 @@ export default {
       .filter((ingredient) => ingredient.active);
 
     return ingredients;
-  },
-  mock: {
-    fetch: (): Promise<Ingredient[]> => {
-      // Puedes usar algún JSON local o datos de prueba aquí en caso de no usar una URL
-      return Promise.resolve(INGREDIENTS);
-    },
   },
 };

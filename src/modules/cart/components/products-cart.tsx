@@ -71,15 +71,19 @@ const useIngredientsPreCart = (ingredients: Ingredient[], product: Product) => {
   return {ingredientsPreCart, setIngredientsPreCart};
 };
 
+type ChangeType = "checkbox" | "select" | "counter";
+
+type OnChangeType = {ingredient: Ingredient; changeType: ChangeType; value: number | Ingredient};
+
 export function ProductsCart({products, ingredients, className, itemClassName}: ProductsCartProps) {
-  const [{shipping}, {cart, cartList, quantity, total}, {addItem, removeItem, updateItem}] =
-    useCart();
+  const [{store}, {cart, cartList, quantity, total}, {addItem, removeItem, updateItem}] = useCart();
   const [product, setProduct] = useState<Product | null>(null);
   const [customQuantity, setCustomQuantity] = useState<number>(1);
   const {customPrice, setCustomPrice} = useCustomPrice();
   const [open, setOpen] = useState<boolean>(false);
 
   const [subtotals, setSubtotals] = useState<{[key: string]: number}>({});
+  const [modifiedProduct, setModifiedProduct] = useState<Product | null>(null);
 
   function addToCart(product: Product | null, quantity: number) {
     if (!product) {
@@ -91,10 +95,20 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
     addItem(crypto.randomUUID(), {...product, quantity: quantity});
   }
 
-  function handleOnClickItem(product: Product) {
-    setProduct(product);
-    setCustomPrice(product.price);
+  function handleOnClickItem(selectedProduct: Product) {
+    setProduct(selectedProduct);
+    setCustomPrice(selectedProduct.price);
     setSubtotals({});
+
+    // Iniciamos el producto modificado con la copia del producto original
+    setModifiedProduct({
+      ...selectedProduct,
+      productIngredients: selectedProduct.productIngredients.map((ingredient) => ({
+        ...ingredient,
+        additionalQuantity: 0, // Añadimos un campo para las cantidades adicionales
+        isSelected: true, // Añadimos un campo para saber si el ingrediente está seleccionado
+      })),
+    });
   }
 
   function handleClose(onClose?: () => void) {
@@ -106,73 +120,95 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
     }
   }
 
-  function handleIngredientsPrice(ingredient: Ingredient, quantity: number) {
-    // `basePrice` siempre se mantiene igual
-    const basePrice = product!.price;
-    const baseQuantity = ingredient.quantity!; // Cantidad base del ingrediente
-
-    // Calcular el precio adicional solo si la cantidad es mayor a la base
-    // if (quantity > baseQuantity) {
-    //   const additionalPrice = ingredient.price * (quantity - baseQuantity);
-
-    //   setCustomPrice(basePrice + additionalPrice);
-    // } else {
-    //   // Si la cantidad es menor o igual a la base, el precio adicional se elimina
-    //   setCustomPrice(basePrice);
-    // }
-
-    // setAdditionalIngredients((prev) => {
-    //   const updatedIngredients = new Map(prev);
-
-    //   // Si la cantidad es mayor a la base, se agrega/modifica el ingrediente
+  function handleIngredientsPrice({ingredient, changeType, value}: OnChangeType) {
+    // if (!modifiedProduct) return;
+    // const baseQuantity = ingredient.quantity!;
+    // setSubtotals((prev) => {
+    //   const updatedSubtotals = {...prev};
+    //   // Si la cantidad es mayor a la base, calculamos el subtotal del ingrediente
     //   if (quantity > baseQuantity) {
-    //     updatedIngredients.set(ingredient.name, quantity - baseQuantity);
+    //     const additionalQuantity = quantity - baseQuantity;
+    //     updatedSubtotals[ingredient.name] = ingredient.price * additionalQuantity;
     //   } else {
-    //     // Si la cantidad es igual o menor a la base, eliminamos el ingrediente de la lista
-    //     updatedIngredients.delete(ingredient.name);
+    //     // Si la cantidad es igual o menor a la base, eliminamos el subtotal del ingrediente
+    //     delete updatedSubtotals[ingredient.name];
     //   }
-
-    //   // Calculamos el precio adicional
-    //   let additionalPrice = 0;
-
-    //   updatedIngredients.forEach((extraQuantity, name) => {
-    //     const ingredientToAdd = ingredients.find((ing) => ing.name === name);
-
-    //     if (ingredientToAdd) {
-    //       additionalPrice += ingredientToAdd.price * extraQuantity;
-    //     }
+    //   // Recalculamos el precio personalizado considerando el subtotal multiplicado por la cantidad de productos
+    //   const additionalPrice = Object.values(updatedSubtotals).reduce(
+    //     (acc, subtotal) => acc + subtotal,
+    //     0,
+    //   );
+    //   setCustomPrice(product!.price * customQuantity + additionalPrice * customQuantity);
+    //   // Actualizamos el producto modificado para reflejar los cambios en los ingredientes
+    //   setModifiedProduct((prevProduct) => {
+    //     if (!prevProduct) return null;
+    //     return {
+    //       ...prevProduct,
+    //       productIngredients: prevProduct.productIngredients.map((ing) =>
+    //         ing.name === ingredient.name
+    //           ? {
+    //               ...ing,
+    //               additionalQuantity: quantity > baseQuantity ? quantity - baseQuantity : 0,
+    //             }
+    //           : ing,
+    //       ),
+    //     };
     //   });
-
-    //   // Actualizamos el precio personalizado
-    //   setCustomPrice(basePrice + additionalPrice);
-
-    //   return updatedIngredients;
+    //   return updatedSubtotals;
     // });
 
-    setSubtotals((prev) => {
-      const updatedSubtotals = {...prev};
+    if (!modifiedProduct) return;
 
-      // Si la cantidad es mayor a la base, calculamos el subtotal del ingrediente
-      if (quantity > baseQuantity) {
-        const additionalQuantity = quantity - baseQuantity;
+    setModifiedProduct((prevProduct) => {
+      if (!prevProduct) return null;
 
-        updatedSubtotals[ingredient.name] = ingredient.price * additionalQuantity;
-      } else {
-        // Si la cantidad es igual o menor a la base, eliminamos el subtotal del ingrediente
-        delete updatedSubtotals[ingredient.name];
-      }
+      return {
+        ...prevProduct,
+        productIngredients: prevProduct.productIngredients.map((ing) => {
+          if (ing.name === ingredient.name) {
+            if (changeType === "counter") {
+              // Actualizar cantidad adicional
+              return {
+                ...ing,
+                additionalQuantity:
+                  Number(value) > ing.quantity! ? Number(value) - ing.quantity! : 0,
+              };
+            } else if (changeType === "checkbox") {
+              // Actualizar si el ingrediente está seleccionado
+              return {
+                ...ing,
+                isSelected: Boolean(value),
+              };
+            } else if (changeType === "select") {
+              // Actualizar el nombre del ingrediente seleccionado
+              const a = value as Ingredient;
 
-      // Calculamos el precio personalizado basado en los subtotales actuales
+              return {
+                ...ing,
+                name: a.name, // Actualizamos el ingrediente seleccionado (asumimos que `value` es un objeto de tipo `Ingredient`)
+              };
+            }
+          }
+
+          return ing;
+        }),
+      };
+    });
+
+    // Recalcular el precio personalizado
+    setCustomPrice(() => {
+      const basePrice = product!.price * customQuantity;
       let additionalPrice = 0;
 
-      for (const key in updatedSubtotals) {
-        additionalPrice += updatedSubtotals[key];
-      }
+      modifiedProduct?.productIngredients.forEach((ing) => {
+        if (ing.additionalQuantity! > 0) {
+          additionalPrice += ing.additionalQuantity! * ing.price;
+        } else if (ing.isSelected && ing.price > 0) {
+          additionalPrice += ing.price;
+        }
+      });
 
-      // El precio personalizado es el precio base más el precio adicional de los ingredientes
-      setCustomPrice(product!.price + additionalPrice);
-
-      return updatedSubtotals;
+      return basePrice + additionalPrice * customQuantity;
     });
   }
 
@@ -198,11 +234,11 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
         <div className="flex flex-col gap-8">
           <div className="w-full">
             <h2 className="mb-8 scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
-              Hamburguesas
+              Hamburguesas (todas vienen con papas!)
             </h2>
             <Products
-              className={cn(className)}
-              itemClassName={itemClassName}
+              className={cn(className, "grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3")}
+              itemClassName={cn(itemClassName, "min-w-[250px]")}
               products={burgers}
               onClick={handleOnClickItem}
             />
@@ -212,8 +248,8 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
               Guarniciones
             </h2>
             <Products
-              className={cn(className)}
-              itemClassName={itemClassName}
+              className={cn(className, "grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3")}
+              itemClassName={cn(itemClassName, "min-w-[250px]")}
               products={others}
               onClick={handleOnClickItem}
             />
@@ -222,7 +258,7 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
       </SheetTrigger>
       <SheetContent className="flex h-full w-full flex-col px-0 sm:pt-0">
         <ScrollArea className="flex-grow overflow-y-auto px-4">
-          <SheetHeader className="px-4 pb-4">
+          {/* <SheetHeader className="px-4 pb-4">
             <img
               alt=""
               className="aspect-square max-h-64 max-w-64 rounded-md object-cover object-center sm:max-h-none sm:max-w-none"
@@ -230,6 +266,15 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
             />
             <SheetTitle className="text-start">{product?.name}</SheetTitle>
             <SheetDescription>{product?.description}</SheetDescription>
+          </SheetHeader> */}
+          <SheetHeader className="flex flex-col items-center px-4 pb-4 ">
+            <img
+              alt=""
+              className="max-h-42 aspect-square max-w-64 rounded-md object-cover object-center"
+              src={product?.image}
+            />
+            <SheetTitle className="w-full text-left">{product?.name}</SheetTitle>
+            <SheetDescription className="text-left">{product?.description}</SheetDescription>
           </SheetHeader>
           <Separator />
           <section className="px-4 pt-4">
@@ -254,7 +299,7 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
                 handleClose(() =>
                   addToCart(
                     {
-                      ...product,
+                      ...modifiedProduct,
                       price: customPrice,
                     } as Product,
                     customQuantity,
@@ -278,7 +323,7 @@ type IngredientsDrawerProps = {
   allIngredients: Ingredient[];
   className?: string;
   itemClassName?: string;
-  onChange?: (ingredient: Ingredient, quantity: number) => void;
+  onChange?: (evt: OnChangeType) => void;
 };
 
 interface IngredientPerCategory {
@@ -327,7 +372,7 @@ function IngredientsDrawer({
                     product={product}
                     source={source}
                     type={ingredient.type}
-                    onChange={(ingredient, quantity) => onChange(ingredient, quantity)}
+                    onChange={onChange}
                   />
                 ))}
               </ul>
@@ -352,7 +397,7 @@ type IngredientDrawerProps = {
   ingredient: Ingredient;
   type: string;
   source: Ingredient[];
-  onChange?: (ingredient: Ingredient, quantity: number) => void;
+  onChange?: (evt: OnChangeType) => void;
   className?: string;
 };
 
@@ -370,14 +415,26 @@ function IngredientDrawer({
 
   if (type === "Aderezo") {
     return (
-      <CheckboxIngredient key={ingredient.name} className={className} ingredient={ingredient} />
+      <CheckboxIngredient
+        key={ingredient.name}
+        className={className}
+        ingredient={ingredient}
+        onChange={(value) => onChange({ingredient, changeType: "checkbox", value})}
+      />
     );
   }
 
   if (type === "Pan") {
     const list = source.filter((item) => item.type === "Pan");
 
-    return <SelectIngredient className={cn(className)} ingredient={ingredient} list={list} />;
+    return (
+      <SelectIngredient
+        className={cn(className)}
+        ingredient={ingredient}
+        list={list}
+        onChange={(value) => onChange({ingredient, changeType: "select", value})}
+      />
+    );
   }
 
   if (type === "Medallon") {
@@ -385,11 +442,16 @@ function IngredientDrawer({
 
     return (
       <div className="flex w-full">
-        <SelectIngredient className={cn(className)} ingredient={ingredient} list={list} />
+        <SelectIngredient
+          className={cn(className)}
+          ingredient={ingredient}
+          list={list}
+          onChange={(value) => onChange({ingredient, changeType: "select", value})}
+        />
         <Counter
           className="w-fit"
           value={ingredientFromProduct?.quantity ?? 1}
-          onChange={(value) => onChange(ingredient, value)}
+          onChange={(value) => onChange({ingredient, changeType: "counter", value})}
         />
       </div>
     );
@@ -397,14 +459,20 @@ function IngredientDrawer({
 
   if (type === "Topping") {
     if (ingredient.max <= 1) {
-      return <CheckboxIngredient className={className} ingredient={ingredient} />;
+      return (
+        <CheckboxIngredient
+          className={className}
+          ingredient={ingredient}
+          onChange={(value) => onChange({ingredient, changeType: "checkbox", value})}
+        />
+      );
     }
 
     return (
       <Counter
         disabled={(value) => value === 0}
         value={ingredientFromProduct?.quantity ?? 1}
-        onChange={(value) => onChange(ingredient, value)}
+        onChange={(value) => onChange({ingredient, changeType: "counter", value})}
       >
         {ingredient.name}
       </Counter>
@@ -416,15 +484,29 @@ function IngredientDrawer({
 
 type SelectIngredientProps = {
   ingredient: Ingredient;
+  onChange?: (value: Ingredient) => void;
   list: Ingredient[];
   className?: string;
 };
 
-function SelectIngredient({ingredient, list, className}: SelectIngredientProps) {
+function SelectIngredient({
+  ingredient,
+  list,
+  className,
+  onChange = () => {},
+}: SelectIngredientProps) {
   const amount = list.length;
 
+  function handleOnChange(value: string) {
+    const selectedIngredient = list.find((item) => item.name === value);
+
+    if (selectedIngredient) {
+      onChange(selectedIngredient);
+    }
+  }
+
   return (
-    <Select>
+    <Select onValueChange={handleOnChange}>
       <SelectTrigger className={cn("w-full", className)} disabled={amount === 1}>
         <SelectValue placeholder={ingredient.name} />
       </SelectTrigger>
@@ -444,12 +526,12 @@ function SelectIngredient({ingredient, list, className}: SelectIngredientProps) 
 type CheckboxIngredientProps = {
   ingredient: Ingredient;
   className?: string;
-  onChange?: (ingredient: Ingredient, quantity: number) => void;
+  onChange?: (value: number) => void;
 };
 
 function CheckboxIngredient({ingredient, className, onChange = () => {}}: CheckboxIngredientProps) {
   function handleOnChange(checked: boolean) {
-    onChange(ingredient, checked ? 1 : 0);
+    onChange(checked ? 1 : 0);
   }
 
   return (

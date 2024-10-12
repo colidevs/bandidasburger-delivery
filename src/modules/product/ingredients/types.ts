@@ -4,6 +4,8 @@ export interface Ingredient {
   price: number;
   required: boolean;
   quantity?: number;
+  additionalQuantity?: number;
+  isSelected?: boolean;
   max: number;
   active: boolean;
 }

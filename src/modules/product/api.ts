@@ -3,7 +3,6 @@ import {BlobOptions} from "buffer";
 import Papa from "papaparse";
 
 import {Product, CsvProduct} from "./types";
-import {PRODUCTS} from "./product";
 import {Ingredient, IngredientsApi} from "./ingredients";
 
 function parseGoogleDriveLink(link: string): string {
@@ -128,7 +127,6 @@ export default {
           return {
             ...ingredientData,
             quantity,
-            name: formatIngredientName(ingredientData.name, quantity),
           };
         });
 
@@ -149,10 +147,5 @@ export default {
       .filter((p) => p.active);
 
     return products;
-  },
-  mock: {
-    fetch: (): Promise<Product[]> => {
-      return Promise.resolve(PRODUCTS);
-    },
   },
 };
