@@ -15,7 +15,6 @@ export interface CsvStore {
   logo: string;
   banner: string;
   instagram: string;
-  whatsapp: string;
   celular: string;
   envio: number;
 }

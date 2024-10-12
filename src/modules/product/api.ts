@@ -70,74 +70,83 @@ export default {
     const {data} = Papa.parse(csv, {header: true, skipEmptyLines: true});
     const csvProducts = data as CsvProduct[];
 
-    const products = csvProducts.map((row: CsvProduct) => {
-      const productIngredientsCsv: {name: string; quantity: number}[] = [];
+    const products = csvProducts
+      .map((row: CsvProduct) => {
+        const productIngredientsCsv: {name: string; quantity: number}[] = [];
 
-      // Recolectar dinámicamente los ingredientes y cantidades del CSV
-      for (let i = 0; i <= 9; i++) {
-        const ingredientKey = i === 0 ? "ingrediente" : `ingrediente_${i}`;
-        const quantityKey = i === 0 ? "cantidad" : `cantidad_${i}`;
-        const ingredientName = row[ingredientKey as keyof CsvProduct];
-        const ingredientQuantity = row[quantityKey as keyof CsvProduct];
+        // Recolectar dinámicamente los ingredientes y cantidades del CSV
+        for (let i = 0; i <= 9; i++) {
+          const ingredientKey = i === 0 ? "ingrediente" : `ingrediente_${i}`;
+          const quantityKey = i === 0 ? "cantidad" : `cantidad_${i}`;
+          const ingredientName = row[ingredientKey as keyof CsvProduct];
+          const ingredientQuantity = row[quantityKey as keyof CsvProduct];
 
-        if (
-          typeof ingredientName === "string" &&
-          ingredientName.trim() !== "" &&
-          typeof ingredientQuantity === "string" &&
-          ingredientQuantity.trim() !== ""
-        ) {
-          productIngredientsCsv.push({
-            name: ingredientName,
-            quantity: parseInt(ingredientQuantity, 10),
-          });
-        }
-      }
-
-      // Mover el pan al final de la lista de ingredientes
-      const sortedIngredients = [
-        ...productIngredientsCsv.filter((ing) => !ing.name.toLowerCase().includes("pan")),
-        ...productIngredientsCsv.filter((ing) => ing.name.toLowerCase().includes("pan")),
-      ];
-
-      // Crear una descripción formateada a partir de los ingredientes
-      const formattedDescription = sortedIngredients
-        .map((ingredient) => formatIngredientName(ingredient.name, ingredient.quantity))
-        .join(" - ");
-
-      const description: string =
-        row["descripcion personalizada"] || formattedDescription || row.descripcion || "";
-
-      const priceString: string =
-        typeof row.precio === "string" ? row.precio.replace(/[$,]/g, "") : "0";
-      const price: number = parseFloat(priceString);
-      const isActive: boolean =
-        typeof row.activo === "string" ? row.activo.toLowerCase() === "si" : false;
-
-      const productIngredients: Ingredient[] = sortedIngredients.map((ingredient) => {
-        const ingredientData: Ingredient | undefined = ingredients.find(
-          (ing) => ing.name === ingredient.name,
-        );
-
-        if (!ingredientData) {
-          return {active: false} as Ingredient;
+          if (
+            typeof ingredientName === "string" &&
+            ingredientName.trim() !== "" &&
+            typeof ingredientQuantity === "string" &&
+            ingredientQuantity.trim() !== ""
+          ) {
+            productIngredientsCsv.push({
+              name: ingredientName,
+              quantity: parseInt(ingredientQuantity, 10),
+            });
+          }
         }
 
-        return ingredientData;
-      });
-      const product: Product = {
-        type: row.tipo || "",
-        name: row.nombre || "",
-        description,
-        customDescription: row["descripcion personalizada"] || "",
-        image: row.imagen,
-        subproduct: row.subproducto,
-        price,
-        active: isActive,
-        productIngredients: productIngredients,
-      };
+        // Mover el pan al final de la lista de ingredientes
+        const sortedIngredients = [
+          ...productIngredientsCsv.filter((ing) => !ing.name.toLowerCase().includes("pan")),
+          ...productIngredientsCsv.filter((ing) => ing.name.toLowerCase().includes("pan")),
+        ];
 
-      return product;
-    });
+        // Crear una descripción formateada a partir de los ingredientes
+        const formattedDescription = sortedIngredients
+          .map((ingredient) => formatIngredientName(ingredient.name, ingredient.quantity))
+          .join(" - ");
+
+        const description: string =
+          row["descripcion personalizada"] || formattedDescription || row.descripcion || "";
+
+        const priceString: string =
+          typeof row.precio === "string" ? row.precio.replace(/[$,]/g, "") : "0";
+        const price: number = parseFloat(priceString);
+        const isActive: boolean =
+          typeof row.activo === "string" ? row.activo.toLowerCase() === "si" : false;
+
+        const productIngredients: Ingredient[] = sortedIngredients.map((ingredient) => {
+          const ingredientData: Ingredient | undefined = ingredients.find(
+            (ing) => ing.name === ingredient.name,
+          );
+
+          if (!ingredientData) {
+            return {active: false} as Ingredient;
+          }
+
+          const quantity = ingredient.quantity;
+
+          return {
+            ...ingredientData,
+            quantity,
+            name: formatIngredientName(ingredientData.name, quantity),
+          };
+        });
+
+        const product: Product = {
+          type: row.tipo || "",
+          name: row.nombre || "",
+          description,
+          customDescription: row["descripcion personalizada"] || "",
+          image: row.imagen,
+          subproduct: row.subproducto,
+          price,
+          active: isActive,
+          productIngredients: productIngredients,
+        };
+
+        return product;
+      })
+      .filter((p) => p.active);
 
     return products;
   },

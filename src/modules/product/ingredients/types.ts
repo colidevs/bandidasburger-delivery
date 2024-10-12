@@ -3,6 +3,7 @@ export interface Ingredient {
   name: string;
   price: number;
   required: boolean;
+  quantity?: number;
   max: number;
   active: boolean;
 }

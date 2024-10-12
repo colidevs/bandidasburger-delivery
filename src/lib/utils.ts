@@ -14,3 +14,23 @@ export async function sleep(ms: number): Promise<void> {
     setTimeout(res, ms);
   });
 }
+
+export function categoryToPlural(name: string) {
+  const lower = name.toLowerCase();
+
+  if (lower === "medallon") {
+    return capitalize("medallones");
+  }
+
+  if (lower === "topping") {
+    return capitalize("toppings");
+  }
+
+  if (lower === "aderezo") {
+    return capitalize("aderezos");
+  }
+
+  if (lower === "pan") {
+    return capitalize("panes");
+  }
+}

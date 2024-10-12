@@ -5,13 +5,14 @@ type ProductsProps = {
   products: Product[];
   onClick: (product: Product) => void;
   className?: string;
+  itemClassName?: string;
 };
 
-export function Products({products, onClick, className}: ProductsProps) {
+export function Products({products, onClick, className, itemClassName}: ProductsProps) {
   return (
     <ul className={cn(className)}>
       {products.map((product) => (
-        <li key={product.name} className="border">
+        <li key={product.name} className={itemClassName}>
           <ProductDrawer product={product} onClick={onClick} />
         </li>
       ))}

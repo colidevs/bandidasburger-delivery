@@ -35,10 +35,6 @@ export default {
           active: row.activo.toLowerCase() === "si",
         };
 
-        if (row.tipo === "Medallon") {
-          console.log(obj);
-        }
-
         return obj;
       })
       .filter((ingredient) => ingredient.active);

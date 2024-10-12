@@ -9,7 +9,7 @@ function convertCsvStoreToStore(csvStore: CsvStore): IStore {
     logo: csvStore.logo,
     banner: csvStore.banner,
     instagram: csvStore.instagram,
-    whatsapp: csvStore.whatsapp,
+    whatsapp: "https://wa.me/" + csvStore.celular,
     phone: csvStore.celular,
     shipping: Number(csvStore.envio),
   };

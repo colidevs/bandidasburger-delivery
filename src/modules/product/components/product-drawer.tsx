@@ -10,13 +10,24 @@ type ProductDrawerProps = {
 
 export function ProductDrawer({product, onClick, className}: ProductDrawerProps) {
   return (
-    <div className={cn("flex justify-between", className)} onClick={() => onClick(product)}>
-      <div className="flex flex-col">
-        <h3>{product.name}</h3>
-        <p>{product.description}</p>
-        <p>{product.price}</p>
+    <div
+      className={cn(
+        "border-white/300 mw-100 flex cursor-pointer items-stretch justify-between gap-2 rounded-md border p-4",
+        className,
+      )}
+      onClick={() => onClick(product)}
+    >
+      <div className="flex flex-col justify-between">
+        <h3 className="font-medium">{product.name}</h3>
+        <p className="mt-2 text-sm  text-muted-foreground">{product.description}</p>
+        <p className="mt-auto font-medium text-green-600">${product.price}</p>
       </div>
-      <img alt={"imagen de " + product.name} src={product.image} width={144} />
+      <img
+        alt={"imagen de " + product.name}
+        className="rounded-md"
+        src={product.image}
+        width={144}
+      />
     </div>
   );
 }

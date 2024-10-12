@@ -6,6 +6,7 @@ import {StoreApi} from "@/modules/store";
 import {CartProviderClient} from "@/modules/cart";
 
 import "./globals.css";
+import {cn} from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "bandidasburger-delivery",
@@ -18,21 +19,33 @@ export default async function RootLayout({children}: {children: React.ReactNode}
   return (
     <html lang="en">
       <body className="bg-background">
-        <div className="container m-auto grid min-h-screen grid-rows-[auto,1fr,auto] px-4 font-sans antialiased">
+        <div className="container m-auto grid min-h-screen grid-rows-[auto,1fr,auto] bg-background font-sans antialiased">
           <header className="text-xl font-bold leading-[4rem]">
-            <img alt="Banner de Bandidas Burger" src="/assets/banner.jpg" />
-            <div>
-              <div className="-mt-20 rounded-full p-1 sm:-mt-12">
+            <div
+              className={cn(
+                "to-#21040c h-40 w-full rounded bg-gradient-to-r from-[#460315] sm:h-64",
+              )}
+            >
+              <img
+                alt="Banner de Bandidas Burger"
+                className="inset-0 h-full w-full object-contain"
+                src={store.banner}
+              />
+            </div>
+            <div className="flex flex-col items-center gap-2 sm:flex-row sm:items-start sm:gap-4">
+              <div className="-mt-16 rounded-full p-1 sm:-mt-24">
                 <img
                   alt="Avatar de Bandidas Burger"
-                  className="h-32 w-32 min-w-[128px] rounded-full border-8 border-background"
-                  src="/assets/avatar.jpg"
+                  className="h-32 rounded-full sm:h-44"
+                  src={store.logo}
                 />
               </div>
-              <div>
-                <div>
-                  <p>{store.name}</p>
-                  <p>{store.description}</p>
+              <div className="sm:mt- text-center0.5 flex flex-col items-center gap-4 sm:items-start sm:gap-2 sm:text-left">
+                <div className="flex flex-col items-center gap-4 text-center sm:items-start sm:gap-2 sm:text-left">
+                  <h2 className="-mb-2 text-3xl font-bold sm:mb-1 sm:text-4xl">{store.name}</h2>
+                  <p className="font-normal leading-tight text-muted-foreground">
+                    {store.description}
+                  </p>
                 </div>
                 <div className="flex gap-2">
                   <a

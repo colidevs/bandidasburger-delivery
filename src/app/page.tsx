@@ -6,21 +6,21 @@ import {ProductTypesApi} from "@/modules/product/product-types";
 import {SubproductsApi} from "@/modules/product/subproducts";
 import {ProductsCart} from "@/modules/cart";
 
-const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const store = await StoreApi.fetch();
   const ingredients = await IngredientsApi.fetch();
-  const subproducts = await SubproductsApi.fetch();
+  //const subproducts = await SubproductsApi.fetch();
   const products = await ProductsApi.fetch();
-  const ingredientTypes = await IngredientTypesApi.fetch();
-  const productTypes = await ProductTypesApi.fetch();
+  //const ingredientTypes = await IngredientTypesApi.fetch();
+  //const productTypes = await ProductTypesApi.fetch();
 
   return (
     <section className="flex gap-6">
       <ProductsCart
-        className="flex flex-1 flex-col gap-8"
+        className="flex flex-1 flex-wrap gap-8"
         ingredients={ingredients}
+        itemClassName="w-full md:w-1/3 lg:w-1/4"
         products={products}
       />
     </section>
