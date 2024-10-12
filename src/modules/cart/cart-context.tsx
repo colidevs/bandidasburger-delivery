@@ -7,6 +7,9 @@ import {createContext, useCallback, useContext, useMemo, useState} from "react";
 import {STORE} from "../store";
 
 import {Button} from "@/components/ui/button";
+import {Sheet, SheetContent, SheetFooter, SheetHeader} from "@/components/ui/sheet";
+import {ScrollArea} from "@/components/ui/scroll-area";
+import {Separator} from "@/components/ui/separator";
 
 interface Context {
   staticValues: {
@@ -103,12 +106,16 @@ export function CartProviderClient({
     [addItem, removeItem, updateItem],
   );
 
+  function Checkout() {
+    console.log(cartList);
+  }
+
   return (
     <CartContext.Provider value={{staticValues, state, actions}}>
       <>
         {children}
         {Boolean(quantity) && (
-          <div className="sticky bottom-0 flex content-center items-center pb-4 sm:m-auto">
+          <div className="sticky bottom-0 flex content-center items-center bg-background pb-4 sm:m-auto">
             <Button
               aria-label="Ver pedido"
               className="m-auto w-full px-4 shadow-lg sm:w-fit"
@@ -132,6 +139,35 @@ export function CartProviderClient({
             </Button>
           </div>
         )}
+        {isCartOpen ? (
+          <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
+            <SheetContent className="flex h-full w-full flex-col px-0 sm:pt-0">
+              <SheetHeader>
+                <div className="mt-4 flex items-center justify-between">
+                  <h2 className="text-xl font-bold">Tu pedido</h2>
+                </div>
+              </SheetHeader>
+
+              <Order />
+
+              <footer className="sticky bottom-0 space-y-4 border-t bg-background">
+                <div className="flex items-center justify-between px-4 pt-4">
+                  <p className="text-lg font-semibold">Total</p>
+                  <p className="text-lg font-semibold">$ {total}</p>
+                </div>
+                <Separator />
+                <div className="flex gap-2 px-4">
+                  <Button variant="outline" onClick={() => setIsCartOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button className="flex flex-1 justify-center" onClick={Checkout}>
+                    <span>Confirmar pedido</span>
+                  </Button>
+                </div>
+              </footer>
+            </SheetContent>
+          </Sheet>
+        ) : null}
       </>
     </CartContext.Provider>
   );
@@ -141,4 +177,41 @@ export function useCart(): [Context["staticValues"], Context["state"], Context["
   const {staticValues, state, actions} = useContext(CartContext);
 
   return [staticValues, state, actions];
+}
+
+function Order() {
+  const [{}, {cartList}, {removeItem}] = useCart();
+
+  return (
+    <section>
+      <ul className="divide-y divide-gray-200">
+        {cartList.map(([id, item]) => (
+          <li key={id} className="flex items-center justify-between py-4">
+            <div className="flex items-center gap-4">
+              <img alt={item.name} className="h-12 w-12 rounded-sm object-cover" src={item.image} />
+              <div className="flex flex-col">
+                <p className="text-lg font-semibold">{item.name}</p>
+                <p className="text-sm text-muted-foreground">
+                  {item.quantity} x {item.price}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <Button
+                aria-label="Eliminar"
+                className="p-2"
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  removeItem(id);
+                }}
+              >
+                Eliminar
+              </Button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
 }

@@ -221,7 +221,7 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
         </div>
       </SheetTrigger>
       <SheetContent className="flex h-full w-full flex-col px-0 sm:pt-0">
-        <ScrollArea className="flex-grow overflow-y-auto px-4" color="white">
+        <ScrollArea className="flex-grow overflow-y-auto px-4">
           <SheetHeader className="px-4 pb-4">
             <img
               alt=""
@@ -244,28 +244,7 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
           </section>
         </ScrollArea>
         <footer className="sticky bottom-0 space-y-4 border-t bg-background">
-          <div className="flex items-center justify-between px-4">
-            {/* <Counter
-              value={customQuantity}
-              onChange={(x) => {
-                setCustomQuantity(x);
-                setCustomPrice((prev) => {
-                  const b = customPrice * x;
-
-                  return b;
-                });
-              }}
-            >
-              Cantidad
-            </Counter> */}
-            <Counter value={customQuantity} onChange={handleQuantityChange}>
-              Cantidad
-            </Counter>
-          </div>
-
-          <Separator />
-
-          <div className="flex gap-2 px-4">
+          <div className="flex gap-2 px-4 pt-4">
             <Button variant="outline" onClick={() => handleClose()}>
               Cancelar
             </Button>
@@ -276,7 +255,7 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
                   addToCart(
                     {
                       ...product,
-                      price: product!.price + (customPrice - product!.price * customQuantity),
+                      price: customPrice,
                     } as Product,
                     customQuantity,
                   ),
@@ -465,13 +444,17 @@ function SelectIngredient({ingredient, list, className}: SelectIngredientProps) 
 type CheckboxIngredientProps = {
   ingredient: Ingredient;
   className?: string;
-  onChange?: (ingredient: Ingredient) => void;
+  onChange?: (ingredient: Ingredient, quantity: number) => void;
 };
 
-function CheckboxIngredient({ingredient, className}: CheckboxIngredientProps) {
+function CheckboxIngredient({ingredient, className, onChange = () => {}}: CheckboxIngredientProps) {
+  function handleOnChange(checked: boolean) {
+    onChange(ingredient, checked ? 1 : 0);
+  }
+
   return (
     <div className={cn("space-x-3", className)}>
-      <Checkbox defaultChecked id={ingredient.name} />
+      <Checkbox defaultChecked id={ingredient.name} onCheckedChange={handleOnChange} />
       <label
         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
         htmlFor={ingredient.name}
