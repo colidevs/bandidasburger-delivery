@@ -84,6 +84,7 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
 
   const [subtotals, setSubtotals] = useState<{[key: string]: number}>({});
   const [modifiedProduct, setModifiedProduct] = useState<Product | null>(null);
+  const [defaultPan, setDefaultPan] = useState<Ingredient | null>(null);
 
   function addToCart(product: Product | null, quantity: number) {
     if (!product) {
@@ -109,6 +110,11 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
         isSelected: true, // Añadimos un campo para saber si el ingrediente está seleccionado
       })),
     });
+
+    // Guardamos el pan por defecto para hacer comparaciones más tarde
+    const defaultBun = selectedProduct.productIngredients.find((ing) => ing.type === "Pan");
+
+    setDefaultPan(defaultBun!);
   }
 
   function handleClose(onClose?: () => void) {
@@ -181,11 +187,30 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
               };
             } else if (changeType === "select") {
               // Actualizar el nombre del ingrediente seleccionado
-              const a = value as Ingredient;
+              // const a = value as Ingredient;
 
+              // return {
+              //   ...a,
+              // };
+
+              const selectedIngredient = value as Ingredient;
+
+              if (
+                defaultPan &&
+                selectedIngredient.name === defaultPan.name &&
+                selectedIngredient.price === defaultPan.price
+              ) {
+                // Si el pan es el mismo que el por defecto, no hacemos cambios en el precio
+                return {
+                  ...selectedIngredient,
+                  isSelected: true,
+                };
+              }
+
+              // Si el pan es diferente, lo reemplazamos
               return {
-                ...ing,
-                name: a.name, // Actualizamos el ingrediente seleccionado (asumimos que `value` es un objeto de tipo `Ingredient`)
+                ...selectedIngredient,
+                isSelected: true,
               };
             }
           }
@@ -196,19 +221,131 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
     });
 
     // Recalcular el precio personalizado
-    setCustomPrice(() => {
-      const basePrice = product!.price * customQuantity;
-      let additionalPrice = 0;
+    // setCustomPrice(() => {
+    //   const basePrice = product!.price * customQuantity;
+    //   let additionalPrice = 0;
 
-      modifiedProduct?.productIngredients.forEach((ing) => {
-        if (ing.additionalQuantity! > 0) {
-          additionalPrice += ing.additionalQuantity! * ing.price;
-        } else if (ing.isSelected && ing.price > 0) {
-          additionalPrice += ing.price;
+    //   modifiedProduct?.productIngredients.forEach((ing) => {
+    //     if (ing.additionalQuantity! > 0) {
+    //       additionalPrice += ing.additionalQuantity! * ing.price;
+    //     } else if (ing.isSelected && ing.price > 0) {
+    //       additionalPrice += ing.price;
+    //     }
+    //   });
+
+    //   return basePrice + additionalPrice * customQuantity;
+    // });
+
+    // setCustomPrice(() => {
+    //   const basePrice = product!.price * customQuantity;
+    //   let additionalPrice = 0;
+
+    //   modifiedProduct?.productIngredients.forEach((ing) => {
+    //     // Sumar precios adicionales según el tipo de cambio
+
+    //     if (ing.type === "Pan") {
+    //       console.log("PAN: ", ing);
+
+    //       return;
+    //     }
+
+    //     if (ing.additionalQuantity! > 0) {
+    //       console.log("SUMA: ", ing);
+    //       additionalPrice += ing.additionalQuantity! * ing.price;
+    //     } else if (ing.isSelected && !ing.required && ing.price > 0) {
+    //       console.log("ADD: ", ing);
+    //       additionalPrice += ing.price;
+    //     }
+
+    //     console.log("PRICE: ", additionalPrice);
+    //   });
+
+    //   const panPrice = modifiedProduct?.productIngredients.find((ing) => ing.type === "Pan")?.price;
+
+    //   if (panPrice) {
+    //     additionalPrice += panPrice;
+    //   }
+
+    //   return basePrice + additionalPrice * customQuantity;
+    // });
+
+    // setSubtotals((prevSubtotals) => {
+    //   const updatedSubtotals = {...prevSubtotals};
+
+    //   if (changeType === "counter") {
+    //     // Si el ingrediente tiene cantidad adicional
+    //     if (value > ingredient.quantity!) {
+    //       const additionalQuantity = value - ingredient.quantity!;
+
+    //       updatedSubtotals[ingredient.name] = ingredient.price * additionalQuantity;
+    //     } else {
+    //       delete updatedSubtotals[ingredient.name];
+    //     }
+    //   } else if (changeType === "checkbox") {
+    //     // Si es un checkbox, agregar o quitar según esté seleccionado
+    //     if (Boolean(value)) {
+    //       updatedSubtotals[ingredient.name] = ingredient.price;
+    //     } else {
+    //       delete updatedSubtotals[ingredient.name];
+    //     }
+    //   } else if (changeType === "select") {
+    //     // Si es un select, actualizar el subtotal con el nuevo ingrediente seleccionado
+    //     const selectedIngredient = value as Ingredient;
+
+    //     updatedSubtotals[selectedIngredient.name] = selectedIngredient.price;
+    //   }
+
+    //   // Actualizar el precio personalizado usando los subtotales
+    //   const additionalPrice = Object.values(updatedSubtotals).reduce(
+    //     (acc, subtotal) => acc + subtotal,
+    //     0,
+    //   );
+
+    //   setCustomPrice(product!.price * customQuantity + additionalPrice * customQuantity);
+
+    //   return updatedSubtotals;
+    // });
+    setSubtotals((prevSubtotals) => {
+      const updatedSubtotals = {...prevSubtotals};
+
+      if (changeType === "counter") {
+        if (Number(value) > ingredient.quantity!) {
+          const additionalQuantity = Number(value) - ingredient.quantity!;
+
+          updatedSubtotals[ingredient.name] = ingredient.price * additionalQuantity;
+        } else {
+          delete updatedSubtotals[ingredient.name];
         }
-      });
+      } else if (changeType === "checkbox") {
+        if (Boolean(value)) {
+          updatedSubtotals[ingredient.name] = ingredient.price;
+        } else {
+          delete updatedSubtotals[ingredient.name];
+        }
+      } else if (changeType === "select") {
+        const selectedIngredient = value as Ingredient;
 
-      return basePrice + additionalPrice * customQuantity;
+        if (
+          defaultPan &&
+          selectedIngredient.name === defaultPan.name &&
+          selectedIngredient.price === defaultPan.price
+        ) {
+          // Si el pan es igual al pan por defecto, no se cambia el subtotal
+          delete updatedSubtotals[selectedIngredient.name];
+        } else {
+          updatedSubtotals[selectedIngredient.name] = selectedIngredient.price;
+        }
+      }
+
+      // Recalcular el precio personalizado usando los subtotales
+      const additionalPrice = Object.values(updatedSubtotals).reduce(
+        (acc, subtotal) => acc + subtotal,
+        0,
+      );
+
+      setCustomPrice(product!.price * customQuantity + additionalPrice * customQuantity);
+
+      return updatedSubtotals;
     });
   }
 
@@ -450,6 +587,8 @@ function IngredientDrawer({
         />
         <Counter
           className="w-fit"
+          disabled={(value) => value === 0}
+          disabledMax={(value) => value === ingredient.max}
           value={ingredientFromProduct?.quantity ?? 1}
           onChange={(value) => onChange({ingredient, changeType: "counter", value})}
         />
@@ -471,6 +610,7 @@ function IngredientDrawer({
     return (
       <Counter
         disabled={(value) => value === 0}
+        disabledMax={(value) => value === ingredient.max}
         value={ingredientFromProduct?.quantity ?? 1}
         onChange={(value) => onChange({ingredient, changeType: "counter", value})}
       >
@@ -497,16 +637,21 @@ function SelectIngredient({
 }: SelectIngredientProps) {
   const amount = list.length;
 
+  const [selectedIngredient, setSelectedIngredient] = useState<Ingredient>(ingredient);
+
   function handleOnChange(value: string) {
     const selectedIngredient = list.find((item) => item.name === value);
 
     if (selectedIngredient) {
+      console.log("SELECTED: ", selectedIngredient);
+
       onChange(selectedIngredient);
+      setSelectedIngredient(selectedIngredient);
     }
   }
 
   return (
-    <Select onValueChange={handleOnChange}>
+    <Select value={selectedIngredient.name} onValueChange={handleOnChange}>
       <SelectTrigger className={cn("w-full", className)} disabled={amount === 1}>
         <SelectValue placeholder={ingredient.name} />
       </SelectTrigger>
@@ -551,6 +696,7 @@ type CounterProps = {
   onChange?: (value: number) => void;
   value?: number;
   disabled?: (value: number) => boolean;
+  disabledMax?: (value: number) => boolean;
   className?: string;
   children?: React.ReactNode;
 };
@@ -559,6 +705,7 @@ function Counter({
   onChange = () => {},
   value = 1,
   disabled = (value) => value === 1,
+  disabledMax = (value) => value >= 10,
   className,
   children,
 }: CounterProps) {
@@ -587,7 +734,12 @@ function Counter({
           <MinusCircle />
         </Button>
         <span className="flex items-center justify-center font-semibold">{count}</span>
-        <Button size="icon" variant="ghost" onClick={() => handleSetCustomQuantity((x) => x + 1)}>
+        <Button
+          disabled={disabledMax(count)}
+          size="icon"
+          variant="ghost"
+          onClick={() => handleSetCustomQuantity((x) => x + 1)}
+        >
           <PlusCircle />
         </Button>
       </div>

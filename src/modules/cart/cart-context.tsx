@@ -114,7 +114,72 @@ export function CartProviderClient({children, store}: {children: React.ReactNode
     cartItems: [string, CartItem][],
     orderDetails: OrderDetails,
   ) {
-    let message = "Pedido:\n";
+    // let message = "*Pedido:*\n";
+
+    // let totalPrice = 0;
+
+    // cartItems.forEach(([id, item]) => {
+    //   const {name, quantity, price, productIngredients} = item;
+
+    //   let description = `${quantity} ${name}`;
+
+    //   // Agregar detalles de personalización si los hay
+    //   const customizations = productIngredients
+    //     .filter((ing) => ing.isSelected || ing.additionalQuantity! > 0)
+    //     .map((ing) => {
+    //       // Determinar la cantidad correcta a mostrar
+    //       const totalQuantity =
+    //         ing.additionalQuantity! > 0 ? ing.additionalQuantity! + ing.quantity! : ing.quantity;
+
+    //       if (totalQuantity && ing.name) {
+    //         return `${totalQuantity} ${ing.name}`;
+    //       }
+
+    //       return null; // Evitar ingredientes sin nombre o cantidad no definida
+    //     })
+    //     .filter((detail) => detail !== null); // Filtrar valores `null` o `undefined`
+
+    //   if (customizations.length > 0) {
+    //     description += ` : ${customizations.join(", ")}`;
+    //   }
+
+    //   // Añadir ingredientes que se han eliminado
+    //   const nonIng = productIngredients
+    //     .filter((ing) => !ing.isSelected && !ing.required && ing.name)
+    //     .map((ing) => ing.name);
+
+    //   if (nonIng.length > 0) {
+    //     description += ` (sin ${nonIng.join(", ")})`;
+    //   }
+
+    //   description += ` > $${price * quantity}`;
+    //   message += `${description}\n`;
+
+    //   totalPrice += price * quantity;
+    // });
+
+    // message += `\n*Datos:*\n`;
+    // message += `Forma de pago: ${orderDetails.paymentMethod}\n`;
+    // message += `Dirección de envío: ${orderDetails.address || "No especificada"}\n`;
+
+    // if (orderDetails.paymentMethod.toLowerCase() === "efectivo") {
+    //   message += `Con cuánto abonás: $${orderDetails.cashAmount || "No especificado"}\n`;
+    // }
+
+    // message += `Pedido a nombre de: ${orderDetails.customerName || "No especificado"}\n`;
+
+    // message += `\n`;
+    // message += `*Total (incluye envío): $${orderDetails.totalAmount}*\n`;
+
+    // if (orderDetails.paymentMethod.toLowerCase() === "efectivo") {
+    //   const change = orderDetails.cashAmount - orderDetails.totalAmount;
+
+    //   message += `*Vuelto: $${change > 0 ? change : 0}*\n`;
+    // }
+
+    // return message;
+
+    let message = "*Pedido:*\n";
 
     let totalPrice = 0;
 
@@ -125,20 +190,38 @@ export function CartProviderClient({children, store}: {children: React.ReactNode
 
       // Agregar detalles de personalización si los hay
       const customizations = productIngredients
-        .filter((ing) => ing.isSelected)
+        .filter((ing) => ing.isSelected || ing.additionalQuantity! > 0)
         .map((ing) => {
-          const detail = `${ing.additionalQuantity! > 0 ? ing.additionalQuantity! + ing.quantity! : ing.quantity} ${ing.name}`;
+          // Determinar la cantidad correcta a mostrar
+          const totalQuantity =
+            ing.additionalQuantity! > 0 ? ing.additionalQuantity! + ing.quantity! : ing.quantity;
 
-          // Remover el "0 " si no es necesario
-          return detail.trim();
-        });
+          if (totalQuantity && ing.name) {
+            return `${totalQuantity} ${ing.name}`;
+          }
 
-      description += ` : ${customizations.join(", ")}`;
+          return null; // Evitar ingredientes sin nombre o cantidad no definida
+        })
+        .filter((detail) => detail !== null); // Filtrar valores `null` o `undefined`
 
-      const nonIng = productIngredients.filter((ing) => !ing.isSelected);
+      // Manejo especial para el pan seleccionado
+      const selectedPan = productIngredients.find((ing) => ing.type === "Pan" && ing.isSelected);
+
+      if (selectedPan && selectedPan.name) {
+        customizations.push(`${selectedPan.name}`);
+      }
+
+      if (customizations.length > 0) {
+        description += ` : ${customizations.join(", ")}`;
+      }
+
+      // Añadir ingredientes que se han eliminado
+      const nonIng = productIngredients
+        .filter((ing) => !ing.isSelected && !ing.required && ing.name)
+        .map((ing) => ing.name);
 
       if (nonIng.length > 0) {
-        description += ` (sin ${nonIng.map((ing) => ing.name).join(", ")})`;
+        description += ` (sin ${nonIng.join(", ")})`;
       }
 
       description += ` > $${price * quantity}`;
@@ -147,15 +230,18 @@ export function CartProviderClient({children, store}: {children: React.ReactNode
       totalPrice += price * quantity;
     });
 
-    message += `\nDatos:\n`;
+    message += `\n*Datos:*\n`;
     message += `Forma de pago: ${orderDetails.paymentMethod}\n`;
-    message += `Dirección de envío: ${orderDetails.address}\n`;
-    if (orderDetails.paymentMethod.toLowerCase() === "efectivo") {
-      message += `Con cuánto abonás: $${orderDetails.cashAmount}\n`;
-    }
-    message += `Pedido a nombre de: ${orderDetails.customerName}\n`;
+    message += `Dirección de envío: ${orderDetails.address || "No especificada"}\n`;
 
-    message += `Total (incluye envío): $${orderDetails.totalAmount}\n`;
+    if (orderDetails.paymentMethod.toLowerCase() === "efectivo") {
+      message += `Con cuánto abonás: $${orderDetails.cashAmount || "No especificado"}\n`;
+    }
+
+    message += `Pedido a nombre de: ${orderDetails.customerName || "No especificado"}\n`;
+
+    message += `\n`;
+    message += `*Total (incluye envío): $${orderDetails.totalAmount}*\n`;
 
     if (orderDetails.paymentMethod.toLowerCase() === "efectivo") {
       const change = orderDetails.cashAmount - orderDetails.totalAmount;
@@ -336,7 +422,8 @@ function Order() {
                     .filter((ing) => ing.additionalQuantity! > 0)
                     .map((ing) => (
                       <li key={ing.name}>
-                        {ing.name} (cantidad: {ing.additionalQuantity}) - ${ing.price}
+                        {ing.name} (cantidad: +{ing.additionalQuantity}) - $
+                        {ing.price * ing.additionalQuantity!}
                       </li>
                     ))}
                 </ul>
