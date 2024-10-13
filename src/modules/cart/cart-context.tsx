@@ -278,10 +278,10 @@ export function CartProviderClient({children, store}: {children: React.ReactNode
       <>
         {children}
         {Boolean(quantity) && (
-          <div className="sticky bottom-0 flex content-center items-center bg-background pb-4 sm:m-auto">
+          <div className="sticky bottom-0 flex content-center items-center pb-4 sm:m-auto">
             <Button
               aria-label="Ver pedido"
-              className="m-auto w-full px-4 shadow-lg sm:w-fit"
+              className="m-auto w-full bg-muted px-4 shadow-lg sm:w-fit"
               data-testid="show-cart"
               size="lg"
               type="button"
