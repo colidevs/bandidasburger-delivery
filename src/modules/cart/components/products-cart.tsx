@@ -330,9 +330,15 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
           selectedIngredient.name === defaultPan.name &&
           selectedIngredient.price === defaultPan.price
         ) {
+          for (const key in updatedSubtotals) {
+            delete updatedSubtotals[key]; // Eliminar cada propiedad del objeto
+          }
+
           // Si el pan es igual al pan por defecto, no se cambia el subtotal
-          delete updatedSubtotals[selectedIngredient.name];
         } else {
+          for (const key in updatedSubtotals) {
+            delete updatedSubtotals[key]; // Eliminar cada propiedad del objeto
+          }
           updatedSubtotals[selectedIngredient.name] = selectedIngredient.price;
         }
       }
@@ -343,7 +349,9 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
         0,
       );
 
+      console.log("ADDITIONAL PRICE: ", additionalPrice);
       setCustomPrice(product!.price * customQuantity + additionalPrice * customQuantity);
+      console.log("SUBTOTALS: ", updatedSubtotals);
 
       return updatedSubtotals;
     });
