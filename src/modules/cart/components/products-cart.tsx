@@ -349,9 +349,7 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
         0,
       );
 
-      console.log("ADDITIONAL PRICE: ", additionalPrice);
       setCustomPrice(product!.price * customQuantity + additionalPrice * customQuantity);
-      console.log("SUBTOTALS: ", updatedSubtotals);
 
       return updatedSubtotals;
     });
@@ -424,6 +422,7 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
           <Separator />
           <section className="px-4 pt-4">
             <IngredientsDrawer
+              Pan={defaultPan?.name}
               allIngredients={ingredients}
               className="flex flex-col gap-4"
               ingredients={product?.productIngredients ?? []}
@@ -464,6 +463,7 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
 
 type IngredientsDrawerProps = {
   product: Product;
+  Pan?: string;
   ingredients: Ingredient[];
   allIngredients: Ingredient[];
   className?: string;
@@ -478,6 +478,7 @@ interface IngredientPerCategory {
 function IngredientsDrawer({
   product,
   ingredients,
+  Pan,
   allIngredients,
   className,
   itemClassName,
@@ -512,6 +513,7 @@ function IngredientsDrawer({
                 {ingredients.map((ingredient) => (
                   <IngredientDrawer
                     key={`${ingredient.name}-${ingredient.type}`}
+                    Pan={Pan}
                     className={itemClassName}
                     ingredient={ingredient}
                     product={product}
@@ -539,6 +541,7 @@ import {
 
 type IngredientDrawerProps = {
   product: Product;
+  Pan: string | undefined;
   ingredient: Ingredient;
   type: string;
   source: Ingredient[];
@@ -548,6 +551,7 @@ type IngredientDrawerProps = {
 
 function IngredientDrawer({
   product,
+  Pan,
   ingredient,
   source,
   type,
@@ -574,6 +578,7 @@ function IngredientDrawer({
 
     return (
       <SelectIngredient
+        DefaultPan={Pan}
         className={cn(className)}
         ingredient={ingredient}
         list={list}
@@ -631,6 +636,7 @@ function IngredientDrawer({
 }
 
 type SelectIngredientProps = {
+  DefaultPan?: string;
   ingredient: Ingredient;
   onChange?: (value: Ingredient) => void;
   list: Ingredient[];
@@ -639,6 +645,7 @@ type SelectIngredientProps = {
 
 function SelectIngredient({
   ingredient,
+  DefaultPan,
   list,
   className,
   onChange = () => {},
@@ -651,8 +658,6 @@ function SelectIngredient({
     const selectedIngredient = list.find((item) => item.name === value);
 
     if (selectedIngredient) {
-      console.log("SELECTED: ", selectedIngredient);
-
       onChange(selectedIngredient);
       setSelectedIngredient(selectedIngredient);
     }
@@ -667,7 +672,8 @@ function SelectIngredient({
         {list.map((item) => (
           <SelectItem key={item.name} value={item.name}>
             <p>
-              {item.name} - ${item.price}
+              {item.name}
+              {item.price !== 0 && item.name !== DefaultPan ? ` - $${item.price}` : ""}
             </p>
           </SelectItem>
         ))}
