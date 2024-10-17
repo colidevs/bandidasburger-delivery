@@ -326,9 +326,10 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
         const selectedIngredient = value as Ingredient;
 
         if (
-          defaultPan &&
-          selectedIngredient.name === defaultPan.name &&
-          selectedIngredient.price === defaultPan.price
+          (defaultPan &&
+            selectedIngredient.name === defaultPan.name &&
+            selectedIngredient.price === defaultPan.price) ||
+          selectedIngredient.price <= defaultPan?.price
         ) {
           for (const key in updatedSubtotals) {
             delete updatedSubtotals[key]; // Eliminar cada propiedad del objeto
@@ -339,7 +340,7 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
           for (const key in updatedSubtotals) {
             delete updatedSubtotals[key]; // Eliminar cada propiedad del objeto
           }
-          updatedSubtotals[selectedIngredient.name] = selectedIngredient.price;
+          updatedSubtotals[selectedIngredient.name] = selectedIngredient.price - defaultPan!.price;
         }
       }
 
@@ -357,7 +358,6 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
 
   function handleQuantityChange(newQuantity: number) {
     setCustomQuantity(newQuantity);
-
     // Recalculamos el precio personalizado considerando los subtotales y la nueva cantidad de productos
     setCustomPrice((prevPrice) => {
       const basePrice = product!.price * newQuantity;
@@ -422,7 +422,7 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
           <Separator />
           <section className="px-4 pt-4">
             <IngredientsDrawer
-              Pan={defaultPan?.name}
+              Pan={defaultPan}
               allIngredients={ingredients}
               className="flex flex-col gap-4"
               ingredients={product?.productIngredients ?? []}
@@ -463,7 +463,7 @@ export function ProductsCart({products, ingredients, className, itemClassName}: 
 
 type IngredientsDrawerProps = {
   product: Product;
-  Pan?: string;
+  Pan?: Ingredient | null;
   ingredients: Ingredient[];
   allIngredients: Ingredient[];
   className?: string;
@@ -541,7 +541,7 @@ import {
 
 type IngredientDrawerProps = {
   product: Product;
-  Pan: string | undefined;
+  Pan: Ingredient | null;
   ingredient: Ingredient;
   type: string;
   source: Ingredient[];
@@ -636,7 +636,7 @@ function IngredientDrawer({
 }
 
 type SelectIngredientProps = {
-  DefaultPan?: string;
+  DefaultPan?: Ingredient | null;
   ingredient: Ingredient;
   onChange?: (value: Ingredient) => void;
   list: Ingredient[];
@@ -673,7 +673,9 @@ function SelectIngredient({
           <SelectItem key={item.name} value={item.name}>
             <p>
               {item.name}
-              {item.price !== 0 && item.name !== DefaultPan ? ` - $${item.price}` : ""}
+              {item.price !== 0 && item.name !== DefaultPan?.name && item.price > DefaultPan?.price
+                ? ` - $${item.price - DefaultPan?.price}`
+                : ""}
             </p>
           </SelectItem>
         ))}
