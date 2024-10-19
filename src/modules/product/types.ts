@@ -1,12 +1,14 @@
 import type {Ingredient} from "@/modules/product/ingredients";
 
+import {Subproduct} from "./subproducts";
+
 export interface Product {
   type: string;
   name: string;
   description?: string;
   customDescription?: string;
   image: string;
-  subproduct?: string;
+  subproduct?: Subproduct;
   price: number;
   active: boolean;
   productIngredients: Ingredient[];

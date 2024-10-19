@@ -55,24 +55,6 @@ export function CartProviderClient({children, store}: {children: React.ReactNode
     [cart],
   );
 
-  // (id: string, value: CartItem) => {
-  //   // Encontrar un producto con el mismo nombre y los mismos ingredientes
-  //   const existingEntry = Array.from(cart.entries()).find(
-  //     ([, item]) =>
-  //       item.name === value.name &&
-  //       JSON.stringify(item.productIngredients) === JSON.stringify(value.productIngredients),
-  //   );
-
-  //   if (existingEntry) {
-  //     // Si hay un producto idéntico, actualizar su cantidad
-  //     const [existingId, existingItem] = existingEntry;
-
-  //     cart.set(existingId, {...existingItem, quantity: existingItem.quantity + value.quantity});
-  //   } else {
-  //     // Si no hay un producto idéntico, agregarlo como nuevo ítem
-  //     cart.set(id, value);
-  //     setCart(new Map(cart));
-  //   }
   const addItem = useCallback(
     (id: string, value: CartItem) => {
       cart.set(id, value);
@@ -114,95 +96,31 @@ export function CartProviderClient({children, store}: {children: React.ReactNode
     cartItems: [string, CartItem][],
     orderDetails: OrderDetails,
   ) {
-    // let message = "*Pedido:*\n";
-
-    // let totalPrice = 0;
-
-    // cartItems.forEach(([id, item]) => {
-    //   const {name, quantity, price, productIngredients} = item;
-
-    //   let description = `${quantity} ${name}`;
-
-    //   // Agregar detalles de personalización si los hay
-    //   const customizations = productIngredients
-    //     .filter((ing) => ing.isSelected || ing.additionalQuantity! > 0)
-    //     .map((ing) => {
-    //       // Determinar la cantidad correcta a mostrar
-    //       const totalQuantity =
-    //         ing.additionalQuantity! > 0 ? ing.additionalQuantity! + ing.quantity! : ing.quantity;
-
-    //       if (totalQuantity && ing.name) {
-    //         return `${totalQuantity} ${ing.name}`;
-    //       }
-
-    //       return null; // Evitar ingredientes sin nombre o cantidad no definida
-    //     })
-    //     .filter((detail) => detail !== null); // Filtrar valores `null` o `undefined`
-
-    //   if (customizations.length > 0) {
-    //     description += ` : ${customizations.join(", ")}`;
-    //   }
-
-    //   // Añadir ingredientes que se han eliminado
-    //   const nonIng = productIngredients
-    //     .filter((ing) => !ing.isSelected && !ing.required && ing.name)
-    //     .map((ing) => ing.name);
-
-    //   if (nonIng.length > 0) {
-    //     description += ` (sin ${nonIng.join(", ")})`;
-    //   }
-
-    //   description += ` > $${price * quantity}`;
-    //   message += `${description}\n`;
-
-    //   totalPrice += price * quantity;
-    // });
-
-    // message += `\n*Datos:*\n`;
-    // message += `Forma de pago: ${orderDetails.paymentMethod}\n`;
-    // message += `Dirección de envío: ${orderDetails.address || "No especificada"}\n`;
-
-    // if (orderDetails.paymentMethod.toLowerCase() === "efectivo") {
-    //   message += `Con cuánto abonás: $${orderDetails.cashAmount || "No especificado"}\n`;
-    // }
-
-    // message += `Pedido a nombre de: ${orderDetails.customerName || "No especificado"}\n`;
-
-    // message += `\n`;
-    // message += `*Total (incluye envío): $${orderDetails.totalAmount}*\n`;
-
-    // if (orderDetails.paymentMethod.toLowerCase() === "efectivo") {
-    //   const change = orderDetails.cashAmount - orderDetails.totalAmount;
-
-    //   message += `*Vuelto: $${change > 0 ? change : 0}*\n`;
-    // }
-
-    // return message;
-
-    let message = "*Pedido:*\n";
-
-    let totalPrice = 0;
+    let message = "*Pedido: {*\n";
 
     cartItems.forEach(([id, item]) => {
-      const {name, quantity, price, productIngredients} = item;
+      const {name, quantity, price, productIngredients, subproduct} = item;
 
-      let description = `${quantity} ${name}`;
+      let description = `- ${quantity} ${name}`;
 
       // Agregar detalles de personalización si los hay
       const customizations = productIngredients
-        .filter((ing) => ing.isSelected || ing.additionalQuantity! > 0)
+        .filter(
+          (ing) =>
+            ing.quantity! - ing.deletedQuantity! > 0 && !ing.name.toLowerCase().includes("pan"),
+        )
         .map((ing) => {
-          // Determinar la cantidad correcta a mostrar
-          const totalQuantity =
-            ing.additionalQuantity! > 0 ? ing.additionalQuantity! + ing.quantity! : ing.quantity;
-
-          if (totalQuantity && ing.name) {
-            return `${totalQuantity} ${ing.name}`;
+          if (ing.additionalQuantity! > 0) {
+            return `${ing.quantity! + ing.additionalQuantity!} ${ing.name}`;
+          } else if (ing.deletedQuantity! > 0) {
+            return `${ing.quantity! - ing.deletedQuantity!} ${ing.name}`;
+          } else {
+            return `${ing.quantity} ${ing.name}`;
           }
 
-          return null; // Evitar ingredientes sin nombre o cantidad no definida
+          return null;
         })
-        .filter((detail) => detail !== null); // Filtrar valores `null` o `undefined`
+        .filter((detail) => detail !== null);
 
       // Manejo especial para el pan seleccionado
       const selectedPan = productIngredients.find((ing) => ing.type === "Pan" && ing.isSelected);
@@ -217,20 +135,27 @@ export function CartProviderClient({children, store}: {children: React.ReactNode
 
       // Añadir ingredientes que se han eliminado
       const nonIng = productIngredients
-        .filter((ing) => !ing.isSelected && !ing.required && ing.name)
+        .filter(
+          (ing) =>
+            (!ing.isSelected && !ing.required && ing.name) ||
+            ing.quantity! - ing.deletedQuantity! <= 0,
+        )
         .map((ing) => ing.name);
 
       if (nonIng.length > 0) {
         description += ` (sin ${nonIng.join(", ")})`;
       }
 
-      description += ` > $${price * quantity}`;
-      message += `${description}\n`;
+      if (subproduct) {
+        description += `\n[Guarnicion: ${subproduct.name}]`;
+      }
 
-      totalPrice += price * quantity;
+      description += ` > $${price * quantity}`;
+      message += `${description}\n\n`;
     });
 
-    message += `\n*Datos:*\n`;
+    message = message.replace(/\n$/, "");
+    message += `}\n\n*Datos:*\n`;
     message += `Forma de pago: ${orderDetails.paymentMethod}\n`;
     message += `Dirección de envío: ${orderDetails.address || "No especificada"}\n`;
 
@@ -265,8 +190,6 @@ export function CartProviderClient({children, store}: {children: React.ReactNode
       cashAmount: cashAmount,
       totalAmount: total + store.shipping,
     });
-
-    console.log(cartList);
 
     const wpp = `https://wa.me/${store.phone}?text=${encodeURIComponent(msg)}`;
 
@@ -312,8 +235,8 @@ export function CartProviderClient({children, store}: {children: React.ReactNode
                   </div>
                 </SheetHeader>
                 <Order />
-                <Separator className="my-4" />
-                <section className="flex flex-col gap-4">
+                <Separator />
+                <section className="mt-4 flex flex-col gap-4">
                   <h3 className="text-lg font-semibold">Detalles del pedido</h3>
                   <RadioGroup
                     defaultValue="MercadoPago"
@@ -349,7 +272,7 @@ export function CartProviderClient({children, store}: {children: React.ReactNode
               </ScrollArea>
               <footer className="sticky bottom-0 space-y-4 border-t bg-background">
                 <div className="flex items-center justify-between px-4 pt-4">
-                  <p className="text-lg font-semibold">Total (incluye envio)</p>
+                  <p className="text-lg font-semibold">Total (incluye envío)</p>
                   <p className="text-lg font-semibold">$ {total + store.shipping}</p>
                 </div>
                 <Separator />
@@ -384,17 +307,11 @@ function Order() {
       <ul className="divide-y divide-muted">
         {cartList.map(([id, item]) => (
           <li key={id} className="flex flex-col gap-2 py-4">
-            <div className="flex items-center justify-between">
+            <div className="ml-1 flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <img
-                  alt={item.name}
-                  className="h-12 w-12 rounded-sm object-cover"
-                  src={item.image}
-                />
-                <div className="flex flex-col">
-                  <p className="text-lg font-semibold">{item.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {item.quantity} x ${item.price}
+                <div className="flex flex-row">
+                  <p className="text-lg font-semibold">
+                    {item.name}: ${item.price}
                   </p>
                 </div>
               </div>
@@ -403,7 +320,7 @@ function Order() {
                   aria-label="Eliminar"
                   className="p-2"
                   size="sm"
-                  variant="ghost"
+                  variant="outline"
                   onClick={() => {
                     removeItem(id);
                   }}
@@ -415,21 +332,71 @@ function Order() {
 
             {/* Mostrar los ingredientes adicionales */}
             {item.productIngredients && item.productIngredients.length > 0 ? (
-              <div className="ml-16 mt-2 text-sm text-muted-foreground">
-                {item.productIngredients.some((ing) => ing.additionalQuantity! > 0) ? (
-                  <p className="font-semibold">Ingredientes adicionales:</p>
-                ) : null}
+              <div className="ml-1 w-full text-sm text-muted-foreground">
+                {/* Ingredientes modificados */}
+                {item.productIngredients.some(
+                  (ing) =>
+                    ing.additionalQuantity! !== 0 ||
+                    ing.deletedQuantity! !== 0 ||
+                    (!ing.isSelected && !ing.required),
+                ) && <p className="font-semibold">Modificaciones:</p>}
 
-                <ul className="list-disc pl-4">
+                <ul className="pl-4">
                   {item.productIngredients
-                    .filter((ing) => ing.additionalQuantity! > 0)
-                    .map((ing) => (
-                      <li key={ing.name}>
-                        {ing.name} (cantidad: +{ing.additionalQuantity}) - $
-                        {ing.price * ing.additionalQuantity!}
-                      </li>
-                    ))}
+                    .filter(
+                      (ing) =>
+                        ing.additionalQuantity! !== 0 ||
+                        ing.deletedQuantity! !== 0 ||
+                        (!ing.isSelected && !ing.required),
+                    )
+                    .map((ing) => {
+                      // Si el ingrediente está eliminado completamente
+                      if (!ing.isSelected && !ing.required) {
+                        return (
+                          <li key={ing.name} className="before:mr-2 before:content-['•']">
+                            Sin {ing.name}
+                          </li>
+                        );
+                      }
+
+                      // Si la cantidad modificada resulta en cero, mostramos "Sin [nombre del ingrediente]"
+                      if (ing.quantity! - ing.deletedQuantity! <= 0) {
+                        return (
+                          <li key={ing.name} className="before:mr-2 before:content-['•']">
+                            Sin {ing.name}
+                          </li>
+                        );
+                      }
+
+                      // Mostrar ingredientes añadidos o restados
+                      if (ing.additionalQuantity! > 0) {
+                        return (
+                          <li key={ing.name} className="flex justify-between">
+                            <span className="before:mr-2 before:content-['•']">
+                              +{ing.additionalQuantity} {ing.name}
+                            </span>
+                            <span className="pr-3">+ ${ing.price * ing.additionalQuantity!}</span>
+                          </li>
+                        );
+                      } else {
+                        return (
+                          <li key={ing.name} className="flex justify-between">
+                            <span className="before:mr-2 before:content-['•']">
+                              -{Math.abs(ing.deletedQuantity!)} {ing.name}
+                            </span>
+                            {/* No mostramos el precio si se eliminó cantidad */}
+                          </li>
+                        );
+                      }
+                    })}
                 </ul>
+                {/* Mostrar subproducto si fue modificado */}
+                <li key="subproduct" className="flex justify-between">
+                  <p className="pt-2 font-semibold">{item.subproduct?.name}</p>
+                  {item.subproduct?.price !== 0 ? (
+                    <p className="pr-3 pt-2 font-semibold">+ ${item.subproduct?.price}</p>
+                  ) : null}
+                </li>
               </div>
             ) : null}
           </li>

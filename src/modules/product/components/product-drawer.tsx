@@ -11,10 +11,6 @@ type ProductDrawerProps = {
 export function ProductDrawer({product, onClick, className}: ProductDrawerProps) {
   return (
     <div
-      // className={cn(
-      //   "border-white/300 mw-100 flex cursor-pointer items-stretch justify-between gap-2 rounded-md border p-4",
-      //   className,
-      // )}
       className={cn(
         "border-white/300 line-clamp-3 flex h-[200px] max-h-[300px] min-w-[300px] cursor-pointer items-stretch justify-between gap-2 rounded-md border p-4",
         className,

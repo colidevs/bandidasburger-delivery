@@ -8,7 +8,7 @@ import {ProductsCart} from "@/modules/cart";
 
 export default async function HomePage() {
   const ingredients = await IngredientsApi.fetch();
-  //const subproducts = await SubproductsApi.fetch();
+  const subproducts = await SubproductsApi.fetch();
   const products = await ProductsApi.fetch();
   //const ingredientTypes = await IngredientTypesApi.fetch();
   //const productTypes = await ProductTypesApi.fetch();
@@ -20,6 +20,8 @@ export default async function HomePage() {
         ingredients={ingredients}
         // itemClassName="w-full md:w-1/3 lg:w-1/4"
         products={products}
+        // itemClassName="w-full md:w-1/3 lg:w-1/4"
+        subproducts={subproducts}
       />
     </section>
   );

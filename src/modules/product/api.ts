@@ -4,6 +4,7 @@ import Papa from "papaparse";
 
 import {Product, CsvProduct} from "./types";
 import {Ingredient, IngredientsApi} from "./ingredients";
+import {Subproduct, SubproductsApi} from "./subproducts"; // Agregamos la importación de la API de Subproducts
 
 function parseGoogleDriveLink(link: string): string {
   const match = link.match(/\/d\/(.*?)\//);
@@ -59,6 +60,7 @@ export default {
     }
 
     const ingredients = await IngredientsApi.fetch();
+    const subproducts = await SubproductsApi.fetch();
 
     const response = await fetch(productsUrl, {next: {tags: ["products"]}});
 
@@ -130,13 +132,18 @@ export default {
           };
         });
 
+        const subproductName = row["subproducto"]?.toString() || ""; // Valor por defecto
+        const subproduct = subproducts.find((subp) => {
+          return subp.name.trim().toLowerCase() === subproductName.toLowerCase();
+        });
+
         const product: Product = {
           type: row.tipo || "",
           name: row.nombre || "",
           description,
           customDescription: row["descripcion personalizada"] || "",
           image: row.imagen,
-          subproduct: row.subproducto,
+          subproduct: subproduct,
           price,
           active: isActive,
           productIngredients: productIngredients,

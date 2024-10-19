@@ -5,6 +5,7 @@ export interface Ingredient {
   required: boolean;
   quantity?: number;
   additionalQuantity?: number;
+  deletedQuantity?: number;
   isSelected?: boolean;
   max: number;
   active: boolean;
