@@ -397,7 +397,7 @@ function Order() {
                 {/* Mostrar subproducto si fue modificado */}
                 <li key="subproduct" className="flex justify-between">
                   <p className="pt-2 font-semibold">{item.subproduct?.name}</p>
-                  {item.subproduct?.price !== 0 ? (
+                  {item.subproduct !== undefined && item.subproduct?.price !== 0 ? (
                     <p className="pr-3 pt-2 font-semibold">+ ${item.subproduct?.price}</p>
                   ) : null}
                 </li>
