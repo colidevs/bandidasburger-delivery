@@ -250,7 +250,7 @@ export function ProductsCart({
           (defaultPan &&
             selectedIngredient.name === defaultPan.name &&
             selectedIngredient.price === defaultPan.price) ||
-          selectedIngredient.price <= defaultPan?.price
+          selectedIngredient.price <= defaultPan!.price
         ) {
           for (const key in updatedSubtotals) {
             delete updatedSubtotals[key]; // Eliminar cada propiedad del objeto
@@ -522,7 +522,7 @@ function IngredientsDrawer({
                 {ingredients.map((ingredient) => (
                   <IngredientDrawer
                     key={`${ingredient.name}-${ingredient.type}`}
-                    Pan={Pan}
+                    Pan={Pan!}
                     className={itemClassName}
                     ingredient={ingredient}
                     product={product}
@@ -689,8 +689,8 @@ function SelectIngredient({
           <SelectItem key={item.name} value={item.name}>
             <p>
               {item.name}
-              {item.price !== 0 && item.name !== DefaultPan?.name && item.price > DefaultPan?.price
-                ? ` - $${item.price - DefaultPan?.price}`
+              {item.price !== 0 && item.name !== DefaultPan?.name && item.price > DefaultPan!.price
+                ? ` + $${item.price - DefaultPan!.price}`
                 : ""}
             </p>
           </SelectItem>

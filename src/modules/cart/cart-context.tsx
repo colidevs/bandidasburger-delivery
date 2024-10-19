@@ -115,7 +115,11 @@ export function CartProviderClient({children, store}: {children: React.ReactNode
           } else if (ing.deletedQuantity! > 0) {
             return `${ing.quantity! - ing.deletedQuantity!} ${ing.name}`;
           } else {
-            return `${ing.quantity} ${ing.name}`;
+            if (ing.quantity === 1) {
+              return `${ing.name}`;
+            } else {
+              return `${ing.quantity} ${ing.name}`;
+            }
           }
 
           return null;
