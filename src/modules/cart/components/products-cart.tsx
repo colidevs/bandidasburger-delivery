@@ -616,7 +616,7 @@ function IngredientDrawer({
         )}
         <Counter
           className="w-fit"
-          disabled={(value) => value === 0}
+          disabled={(value) => value === 1}
           disabledMax={(value) => value === ingredient.max}
           value={ingredientFromProduct?.quantity ?? 1}
           onChange={(value) => onChange({ingredient, changeType: "counter", value})}
