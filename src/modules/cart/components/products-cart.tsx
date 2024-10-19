@@ -247,14 +247,21 @@ export function ProductsCart({
         const selectedIngredient = value as Ingredient;
 
         if (
-          defaultPan &&
-          selectedIngredient.name === defaultPan.name &&
-          selectedIngredient.price === defaultPan.price
+          (defaultPan &&
+            selectedIngredient.name === defaultPan.name &&
+            selectedIngredient.price === defaultPan.price) ||
+          selectedIngredient.price <= defaultPan?.price
         ) {
+          for (const key in updatedSubtotals) {
+            delete updatedSubtotals[key]; // Eliminar cada propiedad del objeto
+          }
+
           // Si el pan es igual al pan por defecto, no se cambia el subtotal
-          delete updatedSubtotals[selectedIngredient.name];
         } else {
-          updatedSubtotals[selectedIngredient.name] = selectedIngredient.price;
+          for (const key in updatedSubtotals) {
+            delete updatedSubtotals[key]; // Eliminar cada propiedad del objeto
+          }
+          updatedSubtotals[selectedIngredient.name] = selectedIngredient.price - defaultPan!.price;
         }
       }
 
@@ -272,7 +279,6 @@ export function ProductsCart({
 
   function handleQuantityChange(newQuantity: number) {
     setCustomQuantity(newQuantity);
-
     // Recalculamos el precio personalizado considerando los subtotales y la nueva cantidad de productos
     setCustomPrice((prevPrice) => {
       const basePrice = product!.price * newQuantity;
@@ -348,6 +354,7 @@ export function ProductsCart({
           <Separator />
           <section className="px-4 pt-4">
             <IngredientsDrawer
+              Pan={defaultPan}
               allIngredients={ingredients}
               className="flex flex-col gap-4"
               ingredients={product?.productIngredients ?? []}
@@ -407,6 +414,7 @@ type SubProductsDrawerProps = {
 
 type IngredientsDrawerProps = {
   product: Product;
+  Pan?: Ingredient | null;
   ingredients: Ingredient[];
   allIngredients: Ingredient[];
   className?: string;
@@ -479,6 +487,7 @@ function SubproductsDrawer({
 function IngredientsDrawer({
   product,
   ingredients,
+  Pan,
   allIngredients,
   className,
   itemClassName,
@@ -513,6 +522,7 @@ function IngredientsDrawer({
                 {ingredients.map((ingredient) => (
                   <IngredientDrawer
                     key={`${ingredient.name}-${ingredient.type}`}
+                    Pan={Pan}
                     className={itemClassName}
                     ingredient={ingredient}
                     product={product}
@@ -540,6 +550,7 @@ import {
 
 type IngredientDrawerProps = {
   product: Product;
+  Pan: Ingredient | null;
   ingredient: Ingredient;
   type: string;
   source: Ingredient[];
@@ -549,6 +560,7 @@ type IngredientDrawerProps = {
 
 function IngredientDrawer({
   product,
+  Pan,
   ingredient,
   source,
   type,
@@ -575,6 +587,7 @@ function IngredientDrawer({
 
     return (
       <SelectIngredient
+        DefaultPan={Pan}
         className={cn(className)}
         ingredient={ingredient}
         list={list}
@@ -639,6 +652,7 @@ function IngredientDrawer({
 }
 
 type SelectIngredientProps = {
+  DefaultPan?: Ingredient | null;
   ingredient: Ingredient;
   onChange?: (value: Ingredient) => void;
   list: Ingredient[];
@@ -647,6 +661,7 @@ type SelectIngredientProps = {
 
 function SelectIngredient({
   ingredient,
+  DefaultPan,
   list,
   className,
   onChange = () => {},
@@ -673,7 +688,10 @@ function SelectIngredient({
         {list.map((item) => (
           <SelectItem key={item.name} value={item.name}>
             <p>
-              {item.name} - ${item.price}
+              {item.name}
+              {item.price !== 0 && item.name !== DefaultPan?.name && item.price > DefaultPan?.price
+                ? ` - $${item.price - DefaultPan?.price}`
+                : ""}
             </p>
           </SelectItem>
         ))}
