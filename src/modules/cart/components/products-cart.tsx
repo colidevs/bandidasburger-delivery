@@ -107,7 +107,7 @@ export function ProductsCart({
 
   function addToCart(product: Product | null, quantity: number) {
     if (!product) {
-      alert("No se ha seleccionado un producto.");
+      alert("No se ha seleccionado un producto");
 
       return;
     }
