@@ -305,33 +305,40 @@ export function ProductsCart({
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <div className="flex flex-col gap-8">
-          <div className="w-full">
-            <h2 className="mb-8 scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
-              Hamburguesas
-            </h2>
+      <div className="flex flex-col gap-8">
+        <div className="w-full">
+          <h2 className="mb-8 scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
+            Hamburguesas
+          </h2>
+          <SheetTrigger asChild>
             <Products
               className={cn(className, "grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3")}
               itemClassName={cn(itemClassName, "min-w-[250px]")}
               products={burgers}
               onClick={handleOnClickItem}
             />
-          </div>
-          <div className="w-full">
-            <h2 className="mb-8 scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
-              Guarniciones
-            </h2>
+          </SheetTrigger>
+        </div>
+        <div className="w-full">
+          <h2 className="mb-8 scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
+            Guarniciones
+          </h2>
+          <SheetTrigger asChild>
             <Products
               className={cn(className, "grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3")}
               itemClassName={cn(itemClassName, "min-w-[250px]")}
               products={others}
               onClick={handleOnClickItem}
             />
-          </div>
+          </SheetTrigger>
         </div>
-      </SheetTrigger>
-      <SheetContent className="flex h-full w-full flex-col px-0 sm:pt-0">
+      </div>
+
+      <SheetContent
+        className="flex h-full w-full flex-col px-0 sm:pt-0"
+        onCloseAutoFocus={(e) => e.preventDefault()}
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         <ScrollArea className="flex-grow overflow-y-auto px-4">
           <SheetHeader className="flex flex-col items-center px-4 py-4 ">
             <img
