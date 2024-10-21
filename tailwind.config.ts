@@ -10,6 +10,9 @@ const config = {
   ],
   prefix: "",
   theme: {
+    fontFamily: {
+      bleedingCowboys: ["bleeding-cowboys"],
+    },
     container: {
       center: true,
       padding: "2rem",

@@ -23,24 +23,29 @@ export default async function RootLayout({children}: {children: React.ReactNode}
           <header className="text-xl font-bold leading-[4rem]">
             <div
               className={cn(
-                "to-#21040c h-40 w-full rounded bg-gradient-to-r from-[#460315] sm:h-64",
+                "to-#21040c flex h-40 w-full items-center justify-center overflow-hidden rounded bg-gradient-to-r from-[#460315] sm:h-64",
               )}
             >
-              <img
+              {/* <img
                 alt="Banner de Bandidas Burger"
                 className="inset-0 h-full w-full object-contain"
                 src={store.banner}
-              />
+              /> */}
+              <p
+                className="font-bleedingCowboys text-2xl text-[#ff9a21] sm:text-4xl md:text-5xl lg:text-7xl"
+                style={{textShadow: "black 10px 0 10px"}}
+              >
+                LAS MAS RICAS DE ZONA SUR
+              </p>
             </div>
-            <div className="flex flex-col items-center gap-2 sm:flex-row sm:items-start sm:gap-4">
-              <div className="-mt-16 rounded-full p-1 sm:-mt-24">
+            <div className="flex flex-col items-center gap-2 sm:ml-16 sm:flex-row sm:items-start sm:gap-4">
+              <div className="-mt-14 rounded-full p-1 sm:-mt-24">
                 <img
                   alt="Avatar de Bandidas Burger"
                   className="h-32 rounded-full sm:h-44"
                   src={store.logo}
                 />
               </div>
-              {/* sm:mt- text-center0.5 flex flex-col items-center gap-4 sm:items-start sm:gap-2 sm:text-left */}
               <div className="flex flex-col items-center gap-4 text-center sm:mt-2 sm:items-start sm:gap-2 sm:text-left">
                 <div className="flex flex-col items-center gap-4 text-center sm:items-start sm:gap-2 sm:text-left">
                   <h2 className="-mb-2 text-3xl font-bold sm:mb-1 sm:text-4xl">{store.name}</h2>

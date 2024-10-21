@@ -333,16 +333,7 @@ export function ProductsCart({
       </SheetTrigger>
       <SheetContent className="flex h-full w-full flex-col px-0 sm:pt-0">
         <ScrollArea className="flex-grow overflow-y-auto px-4">
-          {/* <SheetHeader className="px-4 pb-4">
-            <img
-              alt=""
-              className="aspect-square max-h-64 max-w-64 rounded-md object-cover object-center sm:max-h-none sm:max-w-none"
-              src={product?.image}
-            />
-            <SheetTitle className="text-start">{product?.name}</SheetTitle>
-            <SheetDescription>{product?.description}</SheetDescription>
-          </SheetHeader> */}
-          <SheetHeader className="flex flex-col items-center px-4 pb-4 ">
+          <SheetHeader className="flex flex-col items-center px-4 py-4 ">
             <img
               alt=""
               className="max-h-42 aspect-square max-w-64 rounded-md object-cover object-center"
