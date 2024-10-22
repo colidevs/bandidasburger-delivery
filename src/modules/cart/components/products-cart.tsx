@@ -82,6 +82,12 @@ type OnChangeIngredientType = {
   value: number | Ingredient;
 };
 
+type OnQuantityChange = {
+  quantity: number;
+  changeType: ChangeType;
+  value: number;
+};
+
 type OnChangeSubproductType = {
   subproducts: Subproduct[];
   changeType: ChangeType;
@@ -104,6 +110,7 @@ export function ProductsCart({
   const [subtotals, setSubtotals] = useState<{[key: string]: number}>({});
   const [modifiedProduct, setModifiedProduct] = useState<Product | null>(null);
   const [defaultPan, setDefaultPan] = useState<Ingredient | null>(null);
+  const [productQuantity, setProductQuantity] = useState<number>(1);
 
   function addToCart(product: Product | null, quantity: number) {
     if (!product) {
@@ -279,7 +286,6 @@ export function ProductsCart({
 
   function handleQuantityChange(newQuantity: number) {
     setCustomQuantity(newQuantity);
-    // Recalculamos el precio personalizado considerando los subtotales y la nueva cantidad de productos
     setCustomPrice((prevPrice) => {
       const basePrice = product!.price * newQuantity;
       const additionalPrice =
@@ -372,13 +378,22 @@ export function ProductsCart({
             />
           </section>
         </ScrollArea>
-        <footer className="sticky bottom-0 space-y-4 border-t bg-background">
-          <div className="flex gap-2 px-4 pt-4">
-            <Button variant="outline" onClick={() => handleClose()}>
+        <footer className="sticky bottom-0  border-t bg-background px-4 pt-1">
+          <div className="flex w-full items-center justify-between gap-2 px-4 font-bold">
+            <p className="text-l font-semibold">Cantidad</p>
+            <Counter
+              className="w-fit"
+              disabled={(value) => value === 1}
+              value={productQuantity}
+              onChange={handleQuantityChange}
+            />
+          </div>
+          <div className="flex gap-1 px-4">
+            <Button className="w-fit" variant="outline" onClick={() => handleClose()}>
               Cancelar
             </Button>
             <Button
-              className="flex flex-1 justify-between"
+              className="flex w-full justify-between"
               onClick={() =>
                 handleClose(() =>
                   addToCart(
@@ -756,23 +771,25 @@ function Counter({
       <span>{children}</span>
       <div className="flex">
         <Button
+          className="m-0 p-0"
           disabled={disabled(count)}
           size="icon"
           variant="ghost"
           onClick={() => handleSetCustomQuantity((x) => x - 1)}
         >
-          <MinusCircle />
+          <MinusCircle className="m-0 p-0" />
         </Button>
         <span className="ml-1 mr-1 w-4 items-center justify-center self-center text-center font-semibold">
           {count}
         </span>
         <Button
+          className="m-0 p-0"
           disabled={disabledMax(count)}
           size="icon"
           variant="ghost"
           onClick={() => handleSetCustomQuantity((x) => x + 1)}
         >
-          <PlusCircle />
+          <PlusCircle className="m-0 p-0" />
         </Button>
       </div>
     </div>

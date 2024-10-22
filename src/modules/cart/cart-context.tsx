@@ -57,12 +57,57 @@ export function CartProviderClient({children, store}: {children: React.ReactNode
 
   const addItem = useCallback(
     (id: string, value: CartItem) => {
-      cart.set(id, value);
+      const existingItemEntry = Array.from(cart.entries()).find(([key, item]) => {
+        const areEqual = areProductsEqual(item, value);
+
+        return areEqual;
+      });
+
+      if (existingItemEntry) {
+        const [existingId, existingValue] = existingItemEntry;
+
+        updateItem(existingId, {
+          ...existingValue,
+          quantity: existingValue.quantity + value.quantity,
+        });
+      } else {
+        cart.set(id, value);
+      }
 
       setCart(new Map(cart));
     },
     [cart],
   );
+
+  function areProductsEqual(itemA: CartItem, itemB: CartItem): boolean {
+    // Comparar nombre, precio y subproducto si existen
+    if (itemA.name !== itemB.name || itemA.subproduct?.name !== itemB.subproduct?.name) {
+      return false;
+    }
+
+    // Comparar ingredientes (asegurarnos que estén seleccionados de la misma manera)
+    if (itemA.productIngredients.length !== itemB.productIngredients.length) {
+      return false;
+    }
+
+    // Comparar cada ingrediente (nombre, cantidad, si está seleccionado)
+    for (let i = 0; i < itemA.productIngredients.length; i++) {
+      const ingA = itemA.productIngredients[i];
+      const ingB = itemB.productIngredients[i];
+
+      if (
+        ingA.name !== ingB.name ||
+        ingA.quantity !== ingB.quantity ||
+        ingA.additionalQuantity !== ingB.additionalQuantity ||
+        ingA.deletedQuantity !== ingB.deletedQuantity ||
+        ingA.isSelected !== ingB.isSelected
+      ) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 
   const removeItem = useCallback(
     (id: string) => {
@@ -315,7 +360,7 @@ function Order() {
               <div className="flex items-center gap-4">
                 <div className="flex flex-row">
                   <p className="text-lg font-semibold">
-                    {item.name}: ${item.price}
+                    ({item.quantity}) {item.name}: ${item.price}
                   </p>
                 </div>
               </div>
