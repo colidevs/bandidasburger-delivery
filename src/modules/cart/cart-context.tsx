@@ -57,6 +57,12 @@ export function CartProviderClient({children, store}: {children: React.ReactNode
     [cart],
   );
 
+  const closeCartIfEmpty = (updatedCart: Cart) => {
+    if (updatedCart.size === 0) {
+      setIsCartOpen(false);
+    }
+  };
+
   const addItem = useCallback(
     (id: string, value: CartItem) => {
       const existingItemEntry = Array.from(cart.entries()).find(([key, item]) => {
@@ -71,7 +77,7 @@ export function CartProviderClient({children, store}: {children: React.ReactNode
         updateItem(existingId, {
           ...existingValue,
           quantity: existingValue.quantity + value.quantity,
-          price: value.price % value.quantity,
+          price: value.price / value.quantity,
         });
       } else {
         cart.set(id, value);
@@ -112,8 +118,10 @@ export function CartProviderClient({children, store}: {children: React.ReactNode
   const removeItem = useCallback(
     (id: string) => {
       cart.delete(id);
+      const updatedCart = new Map(cart);
 
-      setCart(new Map(cart));
+      setCart(updatedCart);
+      closeCartIfEmpty(updatedCart);
     },
     [cart],
   );
@@ -121,8 +129,10 @@ export function CartProviderClient({children, store}: {children: React.ReactNode
   const updateItem = useCallback(
     (id: string, value: CartItem) => {
       cart.set(id, value);
+      const updatedCart = new Map(cart);
 
-      setCart(new Map(cart));
+      setCart(updatedCart);
+      closeCartIfEmpty(updatedCart);
     },
     [cart],
   );
@@ -283,7 +293,7 @@ export function CartProviderClient({children, store}: {children: React.ReactNode
                     <h2 className="text-xl font-bold">Tu pedido</h2>
                   </div>
                 </SheetHeader>
-                <Order />
+                <Order setIsCartOpen={setIsCartOpen} />
                 <Separator />
                 <section className="mt-4 flex flex-col gap-4">
                   <h3 className="text-lg font-semibold">Detalles del pedido</h3>
@@ -348,7 +358,7 @@ export function useCart(): [Context["staticValues"], Context["state"], Context["
   return [staticValues, state, actions];
 }
 
-function Order() {
+function Order({setIsCartOpen}: {setIsCartOpen: (isOpen: boolean) => void}) {
   const [{}, {cartList}, {updateItem, removeItem}] = useCart();
 
   function handleQuantityChange(type: "increment" | "decrement", itemId: string) {
@@ -507,7 +517,7 @@ function Counter({
   return (
     <div className={cn("flex w-full items-center justify-between", className)}>
       <span>{children}</span>
-      <div className="flex">
+      <div className="-mr-6 flex">
         <Button
           className="m-0 p-0"
           disabled={disabled(value)}
@@ -522,7 +532,6 @@ function Counter({
         </span>
         <Button
           className="m-0 p-0"
-          disabled={disabledMax(value)}
           size="icon"
           variant="ghost"
           onClick={() => handleSetCustomQuantity((x) => x + 1)}

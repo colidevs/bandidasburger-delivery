@@ -118,8 +118,6 @@ export function ProductsCart({
 
       return;
     }
-    console.log("cantidad:" + quantity);
-    console.log("precio:" + product.price / quantity);
     addItem(crypto.randomUUID(), {...product, quantity: quantity});
   }
 
@@ -401,7 +399,7 @@ export function ProductsCart({
                   addToCart(
                     {
                       ...modifiedProduct,
-                      price: modifiedProduct?.price,
+                      price: customPrice / customQuantity,
                     } as Product,
                     customQuantity,
                   ),
@@ -771,7 +769,7 @@ function Counter({
   return (
     <div className={cn("flex w-full items-center justify-between", className)}>
       <span>{children}</span>
-      <div className="flex">
+      <div className="-mr-3 flex">
         <Button
           className="m-0 p-0"
           disabled={disabled(count)}
