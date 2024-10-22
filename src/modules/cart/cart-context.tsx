@@ -3,9 +3,11 @@
 import type {Cart, CartItem} from "./types";
 
 import {createContext, useCallback, useContext, useMemo, useState} from "react";
+import {IndentDecrease, MinusCircle, MinusSquare, PlusCircle, PlusSquare} from "lucide-react";
 
 import {type Store} from "../store";
 
+import {categoryToPlural, cn} from "@/lib/utils";
 import {Button} from "@/components/ui/button";
 import {Sheet, SheetContent, SheetFooter, SheetHeader} from "@/components/ui/sheet";
 import {ScrollArea} from "@/components/ui/scroll-area";
@@ -69,6 +71,7 @@ export function CartProviderClient({children, store}: {children: React.ReactNode
         updateItem(existingId, {
           ...existingValue,
           quantity: existingValue.quantity + value.quantity,
+          price: value.price % value.quantity,
         });
       } else {
         cart.set(id, value);
@@ -80,17 +83,14 @@ export function CartProviderClient({children, store}: {children: React.ReactNode
   );
 
   function areProductsEqual(itemA: CartItem, itemB: CartItem): boolean {
-    // Comparar nombre, precio y subproducto si existen
     if (itemA.name !== itemB.name || itemA.subproduct?.name !== itemB.subproduct?.name) {
       return false;
     }
 
-    // Comparar ingredientes (asegurarnos que estén seleccionados de la misma manera)
     if (itemA.productIngredients.length !== itemB.productIngredients.length) {
       return false;
     }
 
-    // Comparar cada ingrediente (nombre, cantidad, si está seleccionado)
     for (let i = 0; i < itemA.productIngredients.length; i++) {
       const ingA = itemA.productIngredients[i];
       const ingB = itemB.productIngredients[i];
@@ -349,7 +349,25 @@ export function useCart(): [Context["staticValues"], Context["state"], Context["
 }
 
 function Order() {
-  const [{}, {cartList}, {removeItem}] = useCart();
+  const [{}, {cartList}, {updateItem, removeItem}] = useCart();
+
+  function handleQuantityChange(type: "increment" | "decrement", itemId: string) {
+    const itemEntry = cartList.find(([id]) => id === itemId);
+
+    if (itemEntry) {
+      const [id, cartItem] = itemEntry;
+
+      if (type === "increment") {
+        updateItem(id, {...cartItem, quantity: cartItem.quantity + 1});
+      } else if (type === "decrement") {
+        if (cartItem.quantity > 1) {
+          updateItem(id, {...cartItem, quantity: cartItem.quantity - 1});
+        } else {
+          removeItem(id);
+        }
+      }
+    }
+  }
 
   return (
     <section>
@@ -360,22 +378,21 @@ function Order() {
               <div className="flex items-center gap-4">
                 <div className="flex flex-row">
                   <p className="text-lg font-semibold">
-                    ({item.quantity}) {item.name}: ${item.price}
+                    ({item.quantity}) {item.name}: ${item.price * item.quantity}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <Button
-                  aria-label="Eliminar"
-                  className="p-2"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    removeItem(id);
-                  }}
-                >
-                  Eliminar
-                </Button>
+                <div className="flex w-full items-center justify-between gap-2 px-4 font-bold">
+                  <Counter
+                    className="w-fit"
+                    disabled={(value) => value === 0}
+                    value={item.quantity}
+                    onChange={(newValue) =>
+                      handleQuantityChange(newValue > item.quantity ? "increment" : "decrement", id)
+                    }
+                  />{" "}
+                </div>
               </div>
             </div>
 
@@ -452,5 +469,67 @@ function Order() {
         ))}
       </ul>
     </section>
+  );
+}
+
+type CounterProps = {
+  onChange?: (value: number) => void;
+  value: number; // El valor del contador será controlado externamente
+  disabled?: (value: number) => boolean;
+  disabledMax?: (value: number) => boolean;
+  onCartQuantityChange?: (type: "increment" | "decrement") => void; // Nuevo prop para el cambio de cantidad
+  className?: string;
+  children?: React.ReactNode;
+};
+
+function Counter({
+  onChange = () => {},
+  value,
+  disabled = (value) => value === 1,
+  disabledMax = (value) => value >= 10,
+  onCartQuantityChange = () => {},
+  className,
+  children,
+}: CounterProps) {
+  function handleSetCustomQuantity(quantityLambda: (x: number) => number) {
+    const newValue = quantityLambda(value);
+
+    onChange(newValue);
+
+    // Llama a `onCartQuantityChange` con la acción adecuada
+    if (newValue > value) {
+      onCartQuantityChange("increment");
+    } else if (newValue < value) {
+      onCartQuantityChange("decrement");
+    }
+  }
+
+  return (
+    <div className={cn("flex w-full items-center justify-between", className)}>
+      <span>{children}</span>
+      <div className="flex">
+        <Button
+          className="m-0 p-0"
+          disabled={disabled(value)}
+          size="icon"
+          variant="ghost"
+          onClick={() => handleSetCustomQuantity((x) => x - 1)}
+        >
+          <MinusCircle className="m-0 p-0" />
+        </Button>
+        <span className="ml-1 mr-1 w-4 items-center justify-center self-center text-center font-semibold">
+          {value}
+        </span>
+        <Button
+          className="m-0 p-0"
+          disabled={disabledMax(value)}
+          size="icon"
+          variant="ghost"
+          onClick={() => handleSetCustomQuantity((x) => x + 1)}
+        >
+          <PlusCircle className="m-0 p-0" />
+        </Button>
+      </div>
+    </div>
   );
 }

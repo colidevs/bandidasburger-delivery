@@ -118,6 +118,8 @@ export function ProductsCart({
 
       return;
     }
+    console.log("cantidad:" + quantity);
+    console.log("precio:" + product.price / quantity);
     addItem(crypto.randomUUID(), {...product, quantity: quantity});
   }
 
@@ -399,7 +401,7 @@ export function ProductsCart({
                   addToCart(
                     {
                       ...modifiedProduct,
-                      price: customPrice,
+                      price: modifiedProduct?.price,
                     } as Product,
                     customQuantity,
                   ),
@@ -737,7 +739,7 @@ function CheckboxIngredient({ingredient, className, onChange = () => {}}: Checkb
   );
 }
 
-type CounterProps = {
+export type CounterProps = {
   onChange?: (value: number) => void;
   value?: number;
   disabled?: (value: number) => boolean;
