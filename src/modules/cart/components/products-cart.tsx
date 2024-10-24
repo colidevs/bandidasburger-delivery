@@ -111,6 +111,7 @@ export function ProductsCart({
   const [modifiedProduct, setModifiedProduct] = useState<Product | null>(null);
   const [defaultPan, setDefaultPan] = useState<Ingredient | null>(null);
   const [productQuantity, setProductQuantity] = useState<number>(1);
+  const [anterior, setAnterior] = useState<string>("");
 
   function addToCart(product: Product | null, quantity: number) {
     if (!product) {
@@ -259,15 +260,10 @@ export function ProductsCart({
             selectedIngredient.price === defaultPan.price) ||
           selectedIngredient.price <= defaultPan!.price
         ) {
-          for (const key in updatedSubtotals) {
-            delete updatedSubtotals[key]; // Eliminar cada propiedad del objeto
-          }
-
-          // Si el pan es igual al pan por defecto, no se cambia el subtotal
+          delete updatedSubtotals[anterior];
         } else {
-          for (const key in updatedSubtotals) {
-            delete updatedSubtotals[key]; // Eliminar cada propiedad del objeto
-          }
+          delete updatedSubtotals[anterior];
+          setAnterior(selectedIngredient.name);
           updatedSubtotals[selectedIngredient.name] = selectedIngredient.price - defaultPan!.price;
         }
       }
