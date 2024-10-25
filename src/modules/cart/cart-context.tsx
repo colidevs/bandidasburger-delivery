@@ -6,6 +6,7 @@ import {createContext, useCallback, useContext, useMemo, useState} from "react";
 import {IndentDecrease, MinusCircle, MinusSquare, PlusCircle, PlusSquare} from "lucide-react";
 
 import {type Store} from "../store";
+import {Product} from "../product";
 
 import {categoryToPlural, cn} from "@/lib/utils";
 import {Button} from "@/components/ui/button";
@@ -23,9 +24,11 @@ interface OrderDetails {
   cashAmount: number;
   totalAmount: number;
 }
+
 interface Context {
   staticValues: {
     store: Store;
+    defaultProducts: Product[];
   };
   state: {
     cart: Cart;
@@ -42,7 +45,15 @@ interface Context {
 
 const CartContext = createContext({} as Context);
 
-export function CartProviderClient({children, store}: {children: React.ReactNode; store: Store}) {
+export function CartProviderClient({
+  children,
+  store,
+  defaultProducts,
+}: {
+  children: React.ReactNode;
+  store: Store;
+  defaultProducts: Product[];
+}) {
   const [cart, setCart] = useState<Cart>(() => new Map());
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
 
@@ -77,7 +88,6 @@ export function CartProviderClient({children, store}: {children: React.ReactNode
         updateItem(existingId, {
           ...existingValue,
           quantity: existingValue.quantity + value.quantity,
-          price: value.price / value.quantity,
         });
       } else {
         cart.set(id, value);
@@ -137,7 +147,7 @@ export function CartProviderClient({children, store}: {children: React.ReactNode
     [cart],
   );
 
-  const staticValues: Context["staticValues"] = {store: store};
+  const staticValues: Context["staticValues"] = {store: store, defaultProducts: defaultProducts};
   const state = useMemo(
     () => ({cart, cartList, total, quantity}),
     [cart, cartList, total, quantity],
@@ -293,7 +303,7 @@ export function CartProviderClient({children, store}: {children: React.ReactNode
                     <h2 className="text-xl font-bold">Tu pedido</h2>
                   </div>
                 </SheetHeader>
-                <Order setIsCartOpen={setIsCartOpen} />
+                <Order setIsCartOpen={setIsCartOpen} staticValues={staticValues} />
                 <Separator />
                 <section className="mt-4 flex flex-col gap-4">
                   <h3 className="text-lg font-semibold">Detalles del pedido</h3>
@@ -358,7 +368,13 @@ export function useCart(): [Context["staticValues"], Context["state"], Context["
   return [staticValues, state, actions];
 }
 
-function Order({setIsCartOpen}: {setIsCartOpen: (isOpen: boolean) => void}) {
+function Order({
+  setIsCartOpen,
+  staticValues,
+}: {
+  setIsCartOpen: (isOpen: boolean) => void;
+  staticValues: Context["staticValues"];
+}) {
   const [{}, {cartList}, {updateItem, removeItem}] = useCart();
 
   function handleQuantityChange(type: "increment" | "decrement", itemId: string) {
@@ -378,105 +394,156 @@ function Order({setIsCartOpen}: {setIsCartOpen: (isOpen: boolean) => void}) {
       }
     }
   }
+  // Función para comparar los panes y agregar logs
+  function isPanDifferent(item: CartItem): boolean {
+    const defaultProduct = staticValues.defaultProducts.find((prod) => prod.name === item.name);
+
+    if (!defaultProduct) return false;
+
+    const defaultPan = defaultProduct.productIngredients.find((ing) => ing.type === "Pan");
+    const currentPan = item.productIngredients.find((ing) => ing.type === "Pan");
+
+    return defaultPan?.name !== currentPan?.name;
+  }
+
+  function getPanPriceDifference(item: CartItem): number {
+    const defaultProduct = staticValues.defaultProducts.find((prod) => prod.name === item.name);
+
+    if (!defaultProduct) return 0;
+
+    const defaultPan = defaultProduct.productIngredients.find((ing) => ing.type === "Pan");
+    const currentPan = item.productIngredients.find((ing) => ing.type === "Pan");
+
+    if (!defaultPan || !currentPan) return 0;
+
+    const priceDifference = currentPan.price - defaultPan.price;
+
+    return priceDifference > 0 ? priceDifference : 0;
+  }
 
   return (
     <section>
       <ul className="divide-y divide-muted">
-        {cartList.map(([id, item]) => (
-          <li key={id} className="flex flex-col gap-2 py-4">
-            <div className="ml-1 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex flex-row">
-                  <p className="text-lg font-semibold">
-                    ({item.quantity}) {item.name}: ${item.price * item.quantity}
-                  </p>
+        {cartList.map(([id, item]) => {
+          // Comprobamos si hay alguna modificación en los ingredientes o el pan
+          const panPriceDifference = getPanPriceDifference(item);
+          const hasModifications =
+            isPanDifferent(item) ||
+            item.productIngredients.some(
+              (ing) =>
+                ing.additionalQuantity! !== 0 ||
+                ing.deletedQuantity! !== 0 ||
+                (!ing.isSelected && !ing.required),
+            );
+
+          return (
+            <li key={id} className="flex flex-col gap-2 py-4">
+              <div className="ml-1 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="flex flex-row">
+                    <p className="text-lg font-semibold">
+                      ({item.quantity}) {item.name}: ${item.price * item.quantity}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="flex w-full items-center justify-between gap-2 px-4 font-bold">
+                    <Counter
+                      className="w-fit"
+                      disabled={(value) => value === 0}
+                      value={item.quantity}
+                      onChange={(newValue) =>
+                        handleQuantityChange(
+                          newValue > item.quantity ? "increment" : "decrement",
+                          id,
+                        )
+                      }
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="flex w-full items-center justify-between gap-2 px-4 font-bold">
-                  <Counter
-                    className="w-fit"
-                    disabled={(value) => value === 0}
-                    value={item.quantity}
-                    onChange={(newValue) =>
-                      handleQuantityChange(newValue > item.quantity ? "increment" : "decrement", id)
-                    }
-                  />{" "}
+
+              {/* Mostrar modificaciones si existen */}
+              {hasModifications ? (
+                <div className="ml-1 w-full text-sm text-muted-foreground">
+                  <p className="font-semibold">Modificaciones:</p>
+
+                  <ul className="pl-4">
+                    {/* Mostrar otros ingredientes modificados */}
+                    {item.productIngredients
+                      .filter(
+                        (ing) =>
+                          ing.additionalQuantity! !== 0 ||
+                          ing.deletedQuantity! !== 0 ||
+                          (!ing.isSelected && !ing.required),
+                      )
+                      .map((ing) => {
+                        // Si el ingrediente está eliminado completamente
+                        if (!ing.isSelected && !ing.required) {
+                          return (
+                            <li key={ing.name} className="before:mr-2 before:content-['•']">
+                              Sin {ing.name}
+                            </li>
+                          );
+                        }
+
+                        // Si la cantidad modificada resulta en cero, mostramos "Sin [nombre del ingrediente]"
+                        if (ing.quantity! - ing.deletedQuantity! <= 0) {
+                          return (
+                            <li key={ing.name} className="before:mr-2 before:content-['•']">
+                              Sin {ing.name}
+                            </li>
+                          );
+                        }
+
+                        // Mostrar ingredientes añadidos o restados
+                        if (ing.additionalQuantity! > 0) {
+                          return (
+                            <li key={ing.name} className="flex justify-between">
+                              <span className="before:mr-2 before:content-['•']">
+                                +{ing.additionalQuantity} {ing.name}
+                              </span>
+                              <span className="pr-3">+ ${ing.price * ing.additionalQuantity!}</span>
+                            </li>
+                          );
+                        } else {
+                          return (
+                            <li key={ing.name} className="flex justify-between">
+                              <span className="before:mr-2 before:content-['•']">
+                                -{Math.abs(ing.deletedQuantity!)} {ing.name}
+                              </span>
+                            </li>
+                          );
+                        }
+                      })}
+
+                    {/* Mostrar el nuevo pan si es diferente */}
+                    {isPanDifferent(item) && (
+                      <li className="flex justify-between">
+                        <span className="before:mr-2 before:content-['•']">
+                          {`${item.productIngredients.find((ing) => ing.type === "Pan")?.name}`}
+                        </span>
+                        {panPriceDifference > 0 && (
+                          <span className="pr-3">+ ${panPriceDifference}</span>
+                        )}
+                      </li>
+                    )}
+                  </ul>
                 </div>
-              </div>
-            </div>
+              ) : null}
 
-            {/* Mostrar los ingredientes adicionales */}
-            {item.productIngredients && item.productIngredients.length > 0 ? (
-              <div className="ml-1 w-full text-sm text-muted-foreground">
-                {/* Ingredientes modificados */}
-                {item.productIngredients.some(
-                  (ing) =>
-                    ing.additionalQuantity! !== 0 ||
-                    ing.deletedQuantity! !== 0 ||
-                    (!ing.isSelected && !ing.required),
-                ) && <p className="font-semibold">Modificaciones:</p>}
-
-                <ul className="pl-4">
-                  {item.productIngredients
-                    .filter(
-                      (ing) =>
-                        ing.additionalQuantity! !== 0 ||
-                        ing.deletedQuantity! !== 0 ||
-                        (!ing.isSelected && !ing.required),
-                    )
-                    .map((ing) => {
-                      // Si el ingrediente está eliminado completamente
-                      if (!ing.isSelected && !ing.required) {
-                        return (
-                          <li key={ing.name} className="before:mr-2 before:content-['•']">
-                            Sin {ing.name}
-                          </li>
-                        );
-                      }
-
-                      // Si la cantidad modificada resulta en cero, mostramos "Sin [nombre del ingrediente]"
-                      if (ing.quantity! - ing.deletedQuantity! <= 0) {
-                        return (
-                          <li key={ing.name} className="before:mr-2 before:content-['•']">
-                            Sin {ing.name}
-                          </li>
-                        );
-                      }
-
-                      // Mostrar ingredientes añadidos o restados
-                      if (ing.additionalQuantity! > 0) {
-                        return (
-                          <li key={ing.name} className="flex justify-between">
-                            <span className="before:mr-2 before:content-['•']">
-                              +{ing.additionalQuantity} {ing.name}
-                            </span>
-                            <span className="pr-3">+ ${ing.price * ing.additionalQuantity!}</span>
-                          </li>
-                        );
-                      } else {
-                        return (
-                          <li key={ing.name} className="flex justify-between">
-                            <span className="before:mr-2 before:content-['•']">
-                              -{Math.abs(ing.deletedQuantity!)} {ing.name}
-                            </span>
-                            {/* No mostramos el precio si se eliminó cantidad */}
-                          </li>
-                        );
-                      }
-                    })}
-                </ul>
-                {/* Mostrar subproducto si fue modificado */}
-                <li key="subproduct" className="flex justify-between">
+              {/* Mostrar subproducto siempre */}
+              {item.subproduct ? (
+                <div key="subproduct" className="flex justify-between">
                   <p className="pt-2 font-semibold">{item.subproduct?.name}</p>
-                  {item.subproduct !== undefined && item.subproduct?.price !== 0 ? (
+                  {item.subproduct.price !== 0 ? (
                     <p className="pr-3 pt-2 font-semibold">+ ${item.subproduct?.price}</p>
                   ) : null}
-                </li>
-              </div>
-            ) : null}
-          </li>
-        ))}
+                </div>
+              ) : null}
+            </li>
+          );
+        })}
       </ul>
     </section>
   );

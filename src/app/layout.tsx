@@ -3,6 +3,7 @@ import type {Metadata} from "next";
 import {FaInstagram, FaWhatsapp} from "react-icons/fa";
 
 import {StoreApi} from "@/modules/store";
+import {ProductsApi} from "@/modules/product";
 import {CartProviderClient} from "@/modules/cart";
 
 import "./globals.css";
@@ -15,11 +16,12 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({children}: {children: React.ReactNode}) {
   const store = await StoreApi.fetch();
+  const defaultProducts = await ProductsApi.fetch();
 
   return (
     <html lang="en">
       <body className="bg-background">
-        <div className="container m-auto grid min-h-screen grid-rows-[auto,1fr,auto] bg-background font-sans antialiased">
+        <div className="font-sans container m-auto grid min-h-screen grid-rows-[auto,1fr,auto] bg-background antialiased">
           <header className="text-xl font-bold leading-[4rem]">
             <div
               className={cn(
@@ -78,8 +80,10 @@ export default async function RootLayout({children}: {children: React.ReactNode}
               </div>
             </div>
           </header>
-          <main className="py-8">
-            <CartProviderClient store={store}>{children}</CartProviderClient>
+          <main className="pt-8">
+            <CartProviderClient defaultProducts={defaultProducts} store={store}>
+              {children}
+            </CartProviderClient>
           </main>
           <footer className="text-center leading-[4rem] opacity-70">
             © {new Date().getFullYear()} Bandidas Burger. Todos los derechos reservados. Realizado

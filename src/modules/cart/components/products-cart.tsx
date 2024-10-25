@@ -325,7 +325,7 @@ export function ProductsCart({
           <h2 className="mb-8 scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
             Guarniciones
           </h2>
-          <SheetTrigger asChild>
+          <SheetTrigger asChild className="mb-4">
             <Products
               className={cn(className, "grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3")}
               itemClassName={cn(itemClassName, "min-w-[250px]")}
