@@ -24,7 +24,7 @@ export default async function RootLayout({children}: {children: React.ReactNode}
           <header className="text-xl font-bold leading-[4rem]">
             <div
               className={cn(
-                "to-#21040c flex h-40 w-full items-center justify-center overflow-hidden rounded bg-gradient-to-r from-[#460315] sm:h-64",
+                "to-#21040c flex h-40 w-full items-center justify-center overflow-hidden rounded bg-gradient-to-r from-[#460315] sm:h-52 lg:h-64",
               )}
             >
               {/* <img
@@ -39,8 +39,8 @@ export default async function RootLayout({children}: {children: React.ReactNode}
                 LAS MAS RICAS DE ZONA SUR
               </p>
             </div>
-            <div className="flex flex-col items-center gap-2 sm:ml-16 sm:flex-row sm:items-start">
-              <div className="-mt-12 rounded-full sm:-mt-24">
+            <div className="flex flex-col items-center gap-2 sm:flex-row sm:items-start lg:ml-16">
+              <div className="-mt-12 rounded-full sm:-mt-14 lg:-mt-16">
                 <img
                   alt="Avatar de Bandidas Burger"
                   className="h-32 rounded-full sm:h-44"

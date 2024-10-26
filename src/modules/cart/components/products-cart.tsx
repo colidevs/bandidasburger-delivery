@@ -308,8 +308,8 @@ export function ProductsCart({
           </h2>
           <SheetTrigger asChild>
             <Products
-              className={cn(className, "grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3")}
-              itemClassName={cn(itemClassName, "min-w-[250px]")}
+              className={cn(className, "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3")}
+              itemClassName={cn(itemClassName)}
               products={burgers}
               onClick={handleOnClickItem}
             />
@@ -322,7 +322,7 @@ export function ProductsCart({
           <SheetTrigger asChild className="mb-4">
             <Products
               className={cn(className, "grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3")}
-              itemClassName={cn(itemClassName, "min-w-[250px]")}
+              itemClassName={cn(itemClassName)}
               products={others}
               onClick={handleOnClickItem}
             />
