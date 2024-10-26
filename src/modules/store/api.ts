@@ -12,6 +12,7 @@ function convertCsvStoreToStore(csvStore: CsvStore): IStore {
     whatsapp: "https://wa.me/" + csvStore.celular,
     phone: csvStore.celular,
     shipping: Number(csvStore.envio),
+    shippingType: csvStore["opciones-envio"].split(",").map((item) => item.trim()),
   };
 }
 

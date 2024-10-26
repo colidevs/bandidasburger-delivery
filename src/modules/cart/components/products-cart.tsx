@@ -1,5 +1,6 @@
 "use client";
-import {useEffect, useRef, useState} from "react";
+
+import {useState} from "react";
 import {IndentDecrease, MinusCircle, MinusSquare, PlusCircle, PlusSquare} from "lucide-react";
 
 import {type Product, Products} from "@/modules/product";
@@ -14,11 +15,9 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import {Button} from "@/components/ui/button";
-import {Input} from "@/components/ui/input";
-import {IngredientsApi, type Ingredient} from "@/modules/product/ingredients";
+import {type Ingredient} from "@/modules/product/ingredients";
 import {ScrollArea} from "@/components/ui/scroll-area";
 import {Separator} from "@/components/ui/separator";
-import {AspectRatio} from "@/components/ui/aspect-ratio";
 import {Checkbox} from "@/components/ui/checkbox";
 import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";
 import {Subproduct} from "@/modules/product/subproducts";
@@ -153,7 +152,7 @@ export function ProductsCart({
     }
   }
 
-  function handleSubproductPrice({subproducts, value}: OnChangeSubproductType) {
+  function handleSubproductPrice({value}: OnChangeSubproductType) {
     const selectedSubproduct = value as Subproduct;
 
     setSubtotals((prevSubtotals) => {
@@ -282,7 +281,7 @@ export function ProductsCart({
 
   function handleQuantityChange(newQuantity: number) {
     setCustomQuantity(newQuantity);
-    setCustomPrice((prevPrice) => {
+    setCustomPrice((_prevPrice) => {
       const basePrice = product!.price * newQuantity;
       const additionalPrice =
         Object.values(subtotals).reduce((acc, subtotal) => acc + subtotal, 0) * newQuantity;
@@ -366,7 +365,6 @@ export function ProductsCart({
           <section className="px-4 pt-4">
             <SubproductsDrawer
               className="mb-2 flex flex-col gap-4"
-              itemClassName="px-2"
               product={product!}
               subProducts={subproducts}
               updateProductSubproduct={updateProductSubproduct}
@@ -416,7 +414,6 @@ type SubProductsDrawerProps = {
   product: Product;
   subProducts: Subproduct[];
   className?: string;
-  itemClassName?: string;
   onChange?: (evt: OnChangeSubproductType) => void;
   updateProductSubproduct: (product: Product, subproduct: Subproduct) => void;
 };
@@ -439,7 +436,6 @@ function SubproductsDrawer({
   product,
   subProducts,
   className,
-  itemClassName,
   onChange = () => {},
   updateProductSubproduct,
 }: SubProductsDrawerProps) {

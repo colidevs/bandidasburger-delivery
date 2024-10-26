@@ -8,9 +8,9 @@ import {IndentDecrease, MinusCircle, MinusSquare, PlusCircle, PlusSquare} from "
 import {type Store} from "../store";
 import {Product} from "../product";
 
-import {categoryToPlural, cn} from "@/lib/utils";
+import {cn} from "@/lib/utils";
 import {Button} from "@/components/ui/button";
-import {Sheet, SheetContent, SheetFooter, SheetHeader} from "@/components/ui/sheet";
+import {Sheet, SheetContent, SheetHeader} from "@/components/ui/sheet";
 import {ScrollArea} from "@/components/ui/scroll-area";
 import {Separator} from "@/components/ui/separator";
 import {Input} from "@/components/ui/input";
@@ -76,7 +76,7 @@ export function CartProviderClient({
 
   const addItem = useCallback(
     (id: string, value: CartItem) => {
-      const existingItemEntry = Array.from(cart.entries()).find(([key, item]) => {
+      const existingItemEntry = Array.from(cart.entries()).find(([_key, item]) => {
         const areEqual = areProductsEqual(item, value);
 
         return areEqual;
@@ -163,7 +163,7 @@ export function CartProviderClient({
   ) {
     let message = "*Pedido: {*\n";
 
-    cartItems.forEach(([id, item]) => {
+    cartItems.forEach(([_id, item]) => {
       const {name, quantity, price, productIngredients, subproduct} = item;
 
       let description = `- ${quantity} ${name}`;
@@ -303,7 +303,7 @@ export function CartProviderClient({
                     <h2 className="text-xl font-bold">Tu pedido</h2>
                   </div>
                 </SheetHeader>
-                <Order setIsCartOpen={setIsCartOpen} staticValues={staticValues} />
+                <Order staticValues={staticValues} />
                 <Separator />
                 <section className="mt-4 flex flex-col gap-4">
                   <h3 className="text-lg font-semibold">Detalles del pedido</h3>
@@ -340,9 +340,15 @@ export function CartProviderClient({
                 </section>
               </ScrollArea>
               <footer className="sticky bottom-0 space-y-4 border-t bg-background">
-                <div className="flex items-center justify-between px-4 pt-4">
-                  <p className="text-lg font-semibold">Total (incluye envío)</p>
-                  <p className="text-lg font-semibold">$ {total + store.shipping}</p>
+                <div className="gap-1">
+                  <div className="flex items-center justify-between px-4 pt-4 text-muted-foreground">
+                    <p className="text-sm">Envío</p>
+                    <p className="text-sm">+ ${store.shipping}</p>
+                  </div>
+                  <div className="flex items-center justify-between px-4">
+                    <p className="text-lg font-semibold ">Total</p>
+                    <p className="text-lg font-semibold">${total + store.shipping}</p>
+                  </div>
                 </div>
                 <Separator />
                 <div className="flex gap-2 px-4">
@@ -368,13 +374,7 @@ export function useCart(): [Context["staticValues"], Context["state"], Context["
   return [staticValues, state, actions];
 }
 
-function Order({
-  setIsCartOpen,
-  staticValues,
-}: {
-  setIsCartOpen: (isOpen: boolean) => void;
-  staticValues: Context["staticValues"];
-}) {
+function Order({staticValues}: {staticValues: Context["staticValues"]}) {
   const [{}, {cartList}, {updateItem, removeItem}] = useCart();
 
   function handleQuantityChange(type: "increment" | "decrement", itemId: string) {
@@ -534,10 +534,12 @@ function Order({
 
               {/* Mostrar subproducto siempre */}
               {item.subproduct ? (
-                <div key="subproduct" className="flex justify-between">
-                  <p className="pt-2 font-semibold">{item.subproduct?.name}</p>
+                <div key="subproduct" className="flex justify-between pt-2">
+                  <span className="pl-1 font-semibold">{item.subproduct?.name}</span>
                   {item.subproduct.price !== 0 ? (
-                    <p className="pr-3 pt-2 font-semibold">+ ${item.subproduct?.price}</p>
+                    <span className="pr-2 text-sm text-muted-foreground">
+                      + ${item.subproduct?.price}
+                    </span>
                   ) : null}
                 </div>
               ) : null}
@@ -563,7 +565,6 @@ function Counter({
   onChange = () => {},
   value,
   disabled = (value) => value === 1,
-  disabledMax = (value) => value >= 10,
   onCartQuantityChange = () => {},
   className,
   children,
