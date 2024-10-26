@@ -33,28 +33,28 @@ export default async function RootLayout({children}: {children: React.ReactNode}
                 src={store.banner}
               /> */}
               <p
-                className="font-bleedingCowboys text-2xl text-[#ff9a21] sm:text-4xl md:text-5xl lg:text-7xl"
+                className="select-none font-bleedingCowboys text-2xl text-[#ff9a21] sm:text-4xl md:text-5xl lg:text-7xl"
                 style={{textShadow: "black 10px 0 10px"}}
               >
                 LAS MAS RICAS DE ZONA SUR
               </p>
             </div>
-            <div className="flex flex-col items-center gap-2 sm:ml-16 sm:flex-row sm:items-start sm:gap-4">
-              <div className="-mt-14 rounded-full p-1 sm:-mt-24">
+            <div className="flex flex-col items-center gap-2 sm:ml-16 sm:flex-row sm:items-start">
+              <div className="-mt-12 rounded-full sm:-mt-24">
                 <img
                   alt="Avatar de Bandidas Burger"
                   className="h-32 rounded-full sm:h-44"
                   src={store.logo}
                 />
               </div>
-              <div className="flex flex-col items-center gap-4 text-center sm:mt-2 sm:items-start sm:gap-2 sm:text-left">
-                <div className="flex flex-col items-center gap-4 text-center sm:items-start sm:gap-2 sm:text-left">
-                  <h2 className="-mb-2 text-3xl font-bold sm:mb-1 sm:text-4xl">{store.name}</h2>
+              <div className="flex flex-col items-center gap-4 text-center sm:mt-2 sm:items-start sm:gap-2 sm:text-left lg:gap-2">
+                <div className="flex flex-col items-center gap-4 text-center sm:items-start sm:gap-2 sm:text-left lg:gap-1">
+                  <h2 className="text-3xl font-bold sm:text-4xl">{store.name}</h2>
                   <p className="font-normal leading-tight text-muted-foreground">
                     {store.description}
                   </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="mt-1 flex gap-2">
                   <a
                     aria-label="Instagram"
                     href={store.instagram}
