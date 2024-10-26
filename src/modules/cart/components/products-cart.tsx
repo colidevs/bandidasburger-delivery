@@ -81,12 +81,6 @@ type OnChangeIngredientType = {
   value: number | Ingredient;
 };
 
-type OnQuantityChange = {
-  quantity: number;
-  changeType: ChangeType;
-  value: number;
-};
-
 type OnChangeSubproductType = {
   subproducts: Subproduct[];
   changeType: ChangeType;
@@ -306,6 +300,7 @@ export function ProductsCart({
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTitle hidden />
       <div className="flex flex-col gap-8">
         <div className="w-full">
           <h2 className="mb-8 scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
@@ -717,7 +712,7 @@ function CheckboxIngredient({ingredient, className, onChange = () => {}}: Checkb
   }
 
   return (
-    <div className={cn("flex space-x-3")}>
+    <div className={cn("flex space-x-3", className)}>
       <Checkbox
         defaultChecked
         className="self-center"

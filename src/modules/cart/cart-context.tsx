@@ -10,7 +10,13 @@ import {Product} from "../product";
 
 import {cn} from "@/lib/utils";
 import {Button} from "@/components/ui/button";
-import {Sheet, SheetContent, SheetHeader} from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {ScrollArea} from "@/components/ui/scroll-area";
 import {Separator} from "@/components/ui/separator";
 import {Input} from "@/components/ui/input";
@@ -296,7 +302,9 @@ export function CartProviderClient({
         )}
         {isCartOpen ? (
           <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
+            <SheetTitle hidden />
             <SheetContent className="flex h-full w-full flex-col px-0 sm:pt-0">
+              <SheetDescription hidden />
               <ScrollArea className="flex-grow overflow-y-auto px-4">
                 <SheetHeader>
                   <div className="mt-4 flex items-center justify-between">

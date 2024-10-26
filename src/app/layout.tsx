@@ -5,7 +5,6 @@ import {FaInstagram, FaWhatsapp} from "react-icons/fa";
 import {StoreApi} from "@/modules/store";
 import {ProductsApi} from "@/modules/product";
 import {CartProviderClient} from "@/modules/cart";
-
 import "./globals.css";
 import {cn} from "@/lib/utils";
 
