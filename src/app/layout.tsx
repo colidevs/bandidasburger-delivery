@@ -86,7 +86,7 @@ export default async function RootLayout({children}: {children: React.ReactNode}
           </main>
           <footer className="text-center leading-[4rem] opacity-70">
             © {new Date().getFullYear()} Bandidas Burger. Todos los derechos reservados. Realizado
-            por el equipo de `colidevs`
+            por el equipo de colidevs
           </footer>
         </div>
       </body>
