@@ -21,6 +21,7 @@ import {Separator} from "@/components/ui/separator";
 import {Checkbox} from "@/components/ui/checkbox";
 import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";
 import {Subproduct} from "@/modules/product/subproducts";
+import {AspectRatio} from "@/components/ui/aspect-ratio";
 
 type ProductsCartProps = {
   products: Product[];
@@ -94,7 +95,7 @@ export function ProductsCart({
   className,
   itemClassName,
 }: ProductsCartProps) {
-  const [{store}, {cart, cartList, quantity, total}, {addItem, removeItem, updateItem}] = useCart();
+  const [{store}, {cart, cartList, quantity, total}, {addItem}] = useCart();
   const [product, setProduct] = useState<Product | null>(null);
   const [customQuantity, setCustomQuantity] = useState<number>(1);
   const {customPrice, setCustomPrice} = useCustomPrice();
@@ -105,6 +106,9 @@ export function ProductsCart({
   const [defaultPan, setDefaultPan] = useState<Ingredient | null>(null);
   const [productQuantity, setProductQuantity] = useState<number>(1);
   const [anterior, setAnterior] = useState<string>("");
+  const [defaultIngredients, setDefaultIngredients] = useState<
+    {name: string; defaultQuantity: number}[]
+  >([]);
 
   function addToCart(product: Product | null, quantity: number) {
     if (!product) {
@@ -133,7 +137,12 @@ export function ProductsCart({
 
     // Guardamos el pan por defecto para hacer comparaciones más tarde
     const defaultBun = selectedProduct.productIngredients.find((ing) => ing.type === "Pan");
+    const defaultIngredientsQuantity = selectedProduct.productIngredients.map((ingredient) => ({
+      name: ingredient.name,
+      defaultQuantity: ingredient.quantity ?? 0,
+    }));
 
+    setDefaultIngredients(defaultIngredientsQuantity);
     setDefaultPan(defaultBun!);
   }
 
@@ -240,7 +249,13 @@ export function ProductsCart({
         }
       } else if (changeType === "checkbox") {
         if (Boolean(value)) {
-          updatedSubtotals[ingredient.name] = ingredient.price;
+          const defaultIngredientQuantity = defaultIngredients.find(
+            (ing) => ing.name === ingredient.name,
+          );
+
+          if (defaultIngredientQuantity?.defaultQuantity === 0) {
+            updatedSubtotals[ingredient.name] = ingredient.price;
+          }
         } else {
           delete updatedSubtotals[ingredient.name];
         }
@@ -337,11 +352,31 @@ export function ProductsCart({
       >
         <ScrollArea className="flex-grow overflow-y-auto px-4">
           <SheetHeader className="flex flex-col items-center px-4 py-4 ">
+            {/* <div className="h-[400px] w-[400px]">
+            </div> */}
+            {/* <div className="relative">
+              {/* <div
+              className={cn(
+                "absolute left-0 top-0 h-full w-full bg-cover bg-center blur-xl",
+                product ? `bg-[url(${product!.image})]` : "",
+                )}
+                />
+                </div> */}
             <img
               alt=""
               className="max-h-42 aspect-square max-w-64 rounded-md object-cover object-center"
               src={product?.image}
             />
+
+            {/* <ImageWithBlurBackground alt={product?.name ?? ""} src={product?.image ?? ""} /> */}
+            {/* <AspectRatio ratio={16 / 9}>
+              <img
+                alt=""
+                className="rounded-md object-cover object-center blur-xl"
+                src={product?.image}
+              />
+            </AspectRatio> */}
+
             <SheetTitle className="w-full text-left text-2xl">{product?.name}</SheetTitle>
             <SheetDescription className="text-left">{product?.description}</SheetDescription>
           </SheetHeader>
@@ -560,6 +595,25 @@ type IngredientDrawerProps = {
   className?: string;
 };
 
+function ImageWithBlurBackground({src, alt}: {src: string; alt: string}) {
+  return (
+    <div className="aspect-w-16 aspect-h-9 relative w-full">
+      <div className="absolute inset-0 h-full w-full">
+        <img
+          alt={`${alt} blurred background`}
+          className="h-full w-full object-cover blur-xl"
+          src={src}
+        />
+      </div>
+
+      {/* Imagen principal */}
+      <div className="absolute inset-0 h-full w-full">
+        <img alt={alt} className="h-full w-full object-contain" src={src} />
+      </div>
+    </div>
+  );
+}
+
 function IngredientDrawer({
   product,
   Pan,
@@ -727,14 +781,17 @@ type CheckboxIngredientProps = {
 };
 
 function CheckboxIngredient({ingredient, className, onChange = () => {}}: CheckboxIngredientProps) {
+  const [isChecked, setIsChecked] = useState<boolean>(ingredient.quantity === 1 ? true : false);
+
   function handleOnChange(checked: boolean) {
     onChange(checked ? 1 : 0);
+    setIsChecked(checked ? true : false);
   }
 
   return (
     <div className={cn("flex space-x-3", className)}>
       <Checkbox
-        defaultChecked
+        checked={isChecked}
         className="self-center"
         id={ingredient.name}
         onCheckedChange={handleOnChange}

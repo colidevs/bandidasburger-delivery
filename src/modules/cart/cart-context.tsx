@@ -496,7 +496,10 @@ function Order({staticValues}: {staticValues: Context["staticValues"]}) {
                         }
 
                         // Si la cantidad modificada resulta en cero, mostramos "Sin [nombre del ingrediente]"
-                        if (ing.quantity! - ing.deletedQuantity! <= 0) {
+                        if (
+                          ing.quantity! - ing.deletedQuantity! <= 0 &&
+                          ing.additionalQuantity! === 0
+                        ) {
                           return (
                             <li key={ing.name} className="before:mr-2 before:content-['•']">
                               Sin {ing.name}

@@ -76,7 +76,7 @@ export default {
         const productIngredientsCsv: {name: string; quantity: number}[] = [];
 
         // Recolectar dinámicamente los ingredientes y cantidades del CSV
-        for (let i = 0; i <= 9; i++) {
+        for (let i = 0; i <= 15; i++) {
           const ingredientKey = i === 0 ? "ingrediente" : `ingrediente_${i}`;
           const quantityKey = i === 0 ? "cantidad" : `cantidad_${i}`;
           const ingredientName = row[ingredientKey as keyof CsvProduct];
@@ -148,6 +148,8 @@ export default {
           active: isActive,
           productIngredients: productIngredients,
         };
+
+        console.log(product.image);
 
         return product;
       })

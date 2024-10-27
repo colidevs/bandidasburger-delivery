@@ -61,7 +61,7 @@ export default async function RootLayout({children}: {children: React.ReactNode}
                     rel="noopener noreferrer"
                     target="_blank"
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-50 text-black dark:text-white">
+                    <div className="flex h-10 w-10 items-center justify-start rounded-full bg-transparent text-white">
                       <FaInstagram size={24} />
                     </div>
                   </a>
@@ -71,7 +71,7 @@ export default async function RootLayout({children}: {children: React.ReactNode}
                     rel="noopener noreferrer"
                     target="_blank"
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-50 text-black dark:text-white">
+                    <div className="flex h-10 w-10 items-center justify-start rounded-full bg-transparent text-white">
                       <FaWhatsapp size={24} />
                     </div>
                   </a>
