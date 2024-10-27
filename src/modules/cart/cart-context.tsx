@@ -303,7 +303,7 @@ export function CartProviderClient({
         {isCartOpen ? (
           <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
             <SheetTitle hidden />
-            <SheetContent className="flex h-full w-full flex-col px-0 sm:pt-0">
+            <SheetContent className="flex h-full w-full flex-col px-0 sm:w-2/3 sm:pt-0 md:w-1/2 lg:w-[420px]">
               <SheetDescription hidden />
               <ScrollArea className="flex-grow overflow-y-auto px-4">
                 <SheetHeader>
