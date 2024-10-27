@@ -11,6 +11,7 @@ function convertCsvStoreToStore(csvStore: CsvStore): IStore {
     instagram: csvStore.instagram,
     whatsapp: "https://wa.me/" + csvStore.celular,
     phone: csvStore.celular,
+    location: csvStore.ubicacion,
     shipping: Number(csvStore.envio),
     shippingType: csvStore["opciones-envio"].split(",").map((item) => item.trim()),
   };

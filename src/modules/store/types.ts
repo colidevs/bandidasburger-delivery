@@ -6,6 +6,7 @@ export interface Store {
   instagram: string;
   whatsapp: string;
   phone: string;
+  location: string;
   shipping: number;
   shippingType: string[];
 }
@@ -17,6 +18,7 @@ export interface CsvStore {
   banner: string;
   instagram: string;
   celular: string;
+  ubicacion: string;
   envio: number;
   "opciones-envio": string;
 }

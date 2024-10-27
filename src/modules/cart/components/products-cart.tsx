@@ -370,7 +370,7 @@ export function ProductsCart({
           </section>
         </ScrollArea>
         <footer className="sticky bottom-0  border-t bg-background px-4 pt-1">
-          <div className="flex w-full items-center justify-between gap-2 px-4 font-bold">
+          <div className="flex w-full items-center justify-between gap-2 px-4 py-2 font-bold">
             <p className="text-l font-semibold">Cantidad</p>
             <Counter
               className="w-fit"
