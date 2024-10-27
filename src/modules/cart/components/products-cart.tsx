@@ -331,7 +331,7 @@ export function ProductsCart({
       </div>
 
       <SheetContent
-        className="flex h-full w-full flex-col px-0 sm:pt-0"
+        className="flex h-full w-full flex-col px-0 sm:w-2/3 sm:pt-0 md:w-1/2 lg:w-[420px]"
         onCloseAutoFocus={(e) => e.preventDefault()}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
@@ -342,10 +342,12 @@ export function ProductsCart({
               className="max-h-42 aspect-square max-w-64 rounded-md object-cover object-center"
               src={product?.image}
             />
-            <SheetTitle className="w-full text-left">{product?.name}</SheetTitle>
+            <SheetTitle className="w-full text-left text-2xl">{product?.name}</SheetTitle>
             <SheetDescription className="text-left">{product?.description}</SheetDescription>
           </SheetHeader>
-          <Separator />
+          <div className="px-4">
+            <Separator />
+          </div>
           <section className="px-4 pt-4">
             <IngredientsDrawer
               Pan={defaultPan}
@@ -515,7 +517,7 @@ function IngredientsDrawer({
 
           return (
             <div key={category}>
-              <h4 className="mb-3 border-b pb-1">
+              <h4 className="mb-3 border-b pb-1 text-lg font-semibold">
                 {source.length <= 1 ? category : categoryToPlural(category)}
               </h4>
               <ul className="flex flex-col items-start justify-center gap-2">
@@ -575,7 +577,7 @@ function IngredientDrawer({
     return (
       <CheckboxIngredient
         key={ingredient.name}
-        className={className}
+        className={cn(className, "h-7 items-center p-0 ")}
         ingredient={ingredient}
         onChange={(value) => onChange({ingredient, changeType: "checkbox", value})}
       />
@@ -604,7 +606,7 @@ function IngredientDrawer({
         {list.length === 1 ? (
           <div className="flex w-full justify-between">
             <span className={cn(className, "p-0")}>{list[0].name}</span>
-            <span className={cn(className, "p-0 text-muted-foreground")}>+${list[0].price}</span>
+            <span className={cn(className, "p-0 text-muted-foreground")}>+ ${list[0].price}</span>
           </div>
         ) : (
           <SelectIngredient
@@ -629,7 +631,7 @@ function IngredientDrawer({
     if (ingredient.max <= 1) {
       return (
         <CheckboxIngredient
-          className={className}
+          className={cn(className, "h-7 items-center p-0")}
           ingredient={ingredient}
           onChange={(value) => onChange({ingredient, changeType: "checkbox", value})}
         />
@@ -637,14 +639,19 @@ function IngredientDrawer({
     }
 
     return (
-      <Counter
-        disabled={(value) => value === 0}
-        disabledMax={(value) => value === ingredient.max}
-        value={ingredientFromProduct?.quantity ?? 1}
-        onChange={(value) => onChange({ingredient, changeType: "counter", value})}
-      >
-        {ingredient.name}
-      </Counter>
+      <div className="flex w-full items-center justify-between space-x-2 space-y-0">
+        <div className="flex w-full justify-between">
+          <span className={cn(className, "p-0")}>{ingredient.name}</span>
+          <span className={cn(className, "p-0 text-muted-foreground")}>+ ${ingredient.price}</span>
+        </div>
+        <Counter
+          className="w-fit"
+          disabled={(value) => value === 0}
+          disabledMax={(value) => value === ingredient.max}
+          value={ingredientFromProduct?.quantity ?? 1}
+          onChange={(value) => onChange({ingredient, changeType: "counter", value})}
+        />
+      </div>
     );
   }
 
@@ -682,17 +689,30 @@ function SelectIngredient({
   return (
     <Select value={selectedIngredient.name} onValueChange={handleOnChange}>
       <SelectTrigger className={cn("w-full", className)} disabled={amount === 1}>
-        <SelectValue placeholder={ingredient.name} />
+        <div className="flex w-full items-center justify-between pr-3">
+          <span>{selectedIngredient.name}</span>
+          <span className="text-muted-foreground">
+            {selectedIngredient.price !== 0 &&
+            selectedIngredient.name !== DefaultPan?.name &&
+            selectedIngredient.price > DefaultPan!.price
+              ? ` + $${selectedIngredient.price - DefaultPan!.price}`
+              : ""}
+          </span>
+        </div>
       </SelectTrigger>
       <SelectContent>
         {list.map((item) => (
-          <SelectItem key={item.name} value={item.name}>
-            <p>
-              {item.name}
-              {item.price !== 0 && item.name !== DefaultPan?.name && item.price > DefaultPan!.price
-                ? ` + $${item.price - DefaultPan!.price}`
-                : ""}
-            </p>
+          <SelectItem key={item.name} className="grid w-full" value={item.name}>
+            <div className="flex w-full justify-between">
+              <span>{item.name}</span>
+              <span className="text-muted-foreground">
+                {item.price !== 0 &&
+                item.name !== DefaultPan?.name &&
+                item.price > DefaultPan!.price
+                  ? ` + $${item.price - DefaultPan!.price}`
+                  : ""}
+              </span>
+            </div>
           </SelectItem>
         ))}
       </SelectContent>
@@ -758,7 +778,7 @@ function Counter({
       <span>{children}</span>
       <div className="-mr-3 flex">
         <Button
-          className="m-0 p-0"
+          className="m-0 h-7 p-0"
           disabled={disabled(count)}
           size="icon"
           variant="ghost"
@@ -770,7 +790,7 @@ function Counter({
           {count}
         </span>
         <Button
-          className="m-0 p-0"
+          className="m-0 h-7 p-0"
           disabled={disabledMax(count)}
           size="icon"
           variant="ghost"
