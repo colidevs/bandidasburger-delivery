@@ -323,7 +323,7 @@ export function ProductsCart({
           </h2>
           <SheetTrigger asChild>
             <Products
-              className={cn(className, "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3")}
+              className={cn(className, "grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3")}
               itemClassName={cn(itemClassName)}
               products={burgers}
               onClick={handleOnClickItem}
@@ -336,7 +336,7 @@ export function ProductsCart({
           </h2>
           <SheetTrigger asChild className="mb-4">
             <Products
-              className={cn(className, "grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3")}
+              className={cn(className, "grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3")}
               itemClassName={cn(itemClassName)}
               products={others}
               onClick={handleOnClickItem}
@@ -351,32 +351,19 @@ export function ProductsCart({
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <ScrollArea className="flex-grow overflow-y-auto px-4">
-          <SheetHeader className="flex flex-col items-center px-4 py-4 ">
-            {/* <div className="h-[400px] w-[400px]">
-            </div> */}
-            {/* <div className="relative">
-              {/* <div
-              className={cn(
-                "absolute left-0 top-0 h-full w-full bg-cover bg-center blur-xl",
-                product ? `bg-[url(${product!.image})]` : "",
-                )}
-                />
-                </div> */}
+          <div className="relative h-64 w-full pt-4">
             <img
               alt=""
-              className="max-h-42 aspect-square max-w-64 rounded-md object-cover object-center"
+              className="m-auto h-full w-full max-w-64 object-cover"
               src={product?.image}
             />
-
-            {/* <ImageWithBlurBackground alt={product?.name ?? ""} src={product?.image ?? ""} /> */}
-            {/* <AspectRatio ratio={16 / 9}>
-              <img
-                alt=""
-                className="rounded-md object-cover object-center blur-xl"
-                src={product?.image}
-              />
-            </AspectRatio> */}
-
+            <img
+              alt=""
+              className="absolute top-4 -z-10 h-full max-h-60 w-full opacity-45 blur-[2px]"
+              src={product?.image}
+            />
+          </div>
+          <SheetHeader className="flex flex-col items-center py-4 ">
             <SheetTitle className="w-full text-left text-2xl">{product?.name}</SheetTitle>
             <SheetDescription className="text-left">{product?.description}</SheetDescription>
           </SheetHeader>

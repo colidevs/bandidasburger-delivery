@@ -24,7 +24,7 @@ export function ProductDrawer({product, onClick, className}: ProductDrawerProps)
       </div>
       <img
         alt={"imagen de " + product.name}
-        className="aspect-square w-[144px] rounded-md"
+        className="aspect-square rounded-md"
         src={product.image}
       />
     </div>
