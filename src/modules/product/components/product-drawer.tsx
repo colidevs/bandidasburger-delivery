@@ -22,11 +22,22 @@ export function ProductDrawer({product, onClick, className}: ProductDrawerProps)
         <p className="mt-2 line-clamp-5 text-sm text-muted-foreground">{product.description}</p>
         <p className="mt-auto font-medium text-green-600">${product.price}</p>
       </div>
-      <img
-        alt={"imagen de " + product.name}
-        className="aspect-square rounded-md"
-        src={product.image}
-      />
+      {product.image ? (
+        <img
+          alt={"imagen de " + product.name}
+          className="aspect-square rounded-md"
+          src={product.image}
+        />
+      ) : (
+        <div className="flex aspect-square h-[166px] w-[166px] items-center justify-center overflow-hidden rounded-md bg-[#460315]">
+          <p
+            className="select-none font-bleedingCowboys text-8xl text-[#ff9a21]"
+            style={{textShadow: "black 10px 0 10px"}}
+          >
+            ?
+          </p>
+        </div>
+      )}
     </div>
   );
 }

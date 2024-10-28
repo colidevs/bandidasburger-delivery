@@ -174,14 +174,26 @@ export function CartProviderClient({
 
       let description = `- ${quantity} ${name}`;
 
+      console.log(productIngredients);
       // Agregar detalles de personalización si los hay
       const customizations = productIngredients
         .filter(
           (ing) =>
-            ing.quantity! - ing.deletedQuantity! > 0 && !ing.name.toLowerCase().includes("pan"),
+            ing.quantity! - ing.deletedQuantity! + ing.additionalQuantity! > 0 &&
+            !ing.name.toLowerCase().includes("pan"),
         )
         .map((ing) => {
-          if (ing.additionalQuantity! > 0) {
+          if (ing.quantity! === 0 && ing.additionalQuantity! > 0) {
+            if (ing.additionalQuantity! === 1) {
+              if (ing.max > 1) {
+                return `1 ${ing.name}`;
+              }
+
+              return `${ing.name}`;
+            }
+
+            return `${ing.quantity! + ing.additionalQuantity!} ${ing.name}`;
+          } else if (ing.additionalQuantity! > 0) {
             return `${ing.quantity! + ing.additionalQuantity!} ${ing.name}`;
           } else if (ing.deletedQuantity! > 0) {
             return `${ing.quantity! - ing.deletedQuantity!} ${ing.name}`;
@@ -212,8 +224,13 @@ export function CartProviderClient({
       const nonIng = productIngredients
         .filter(
           (ing) =>
-            (!ing.isSelected && !ing.required && ing.name) ||
-            ing.quantity! - ing.deletedQuantity! <= 0,
+            (ing.quantity === 0 &&
+              ing.additionalQuantity === 0 &&
+              ing.deletedQuantity! > 0 &&
+              !ing.isSelected &&
+              !ing.required &&
+              ing.name) ||
+            (ing.quantity! - ing.deletedQuantity! <= 0 && ing.deletedQuantity! > 0),
         )
         .map((ing) => ing.name);
 
@@ -509,14 +526,29 @@ function Order({staticValues}: {staticValues: Context["staticValues"]}) {
 
                         // Mostrar ingredientes añadidos o restados
                         if (ing.additionalQuantity! > 0) {
-                          return (
-                            <li key={ing.name} className="flex justify-between">
-                              <span className="before:mr-2 before:content-['•']">
-                                +{ing.additionalQuantity} {ing.name}
-                              </span>
-                              <span className="pr-3">+ ${ing.price * ing.additionalQuantity!}</span>
-                            </li>
-                          );
+                          if (ing.max > 1) {
+                            return (
+                              <li key={ing.name} className="flex justify-between">
+                                <span className="before:mr-2 before:content-['•']">
+                                  +{ing.additionalQuantity} {ing.name}
+                                </span>
+                                <span className="pr-3">
+                                  + ${ing.price * ing.additionalQuantity!}
+                                </span>
+                              </li>
+                            );
+                          } else if (ing.max === 1) {
+                            return (
+                              <li key={ing.name} className="flex justify-between">
+                                <span className="before:mr-2 before:content-['•']">
+                                  + {ing.name}
+                                </span>
+                                <span className="pr-3">
+                                  + ${ing.price * ing.additionalQuantity!}
+                                </span>
+                              </li>
+                            );
+                          }
                         } else {
                           return (
                             <li key={ing.name} className="flex justify-between">

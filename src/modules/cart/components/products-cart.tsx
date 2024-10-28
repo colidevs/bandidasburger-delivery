@@ -1,7 +1,14 @@
 "use client";
 
 import {useState} from "react";
-import {IndentDecrease, MinusCircle, MinusSquare, PlusCircle, PlusSquare} from "lucide-react";
+import {
+  Divide,
+  IndentDecrease,
+  MinusCircle,
+  MinusSquare,
+  PlusCircle,
+  PlusSquare,
+} from "lucide-react";
 
 import {type Product, Products} from "@/modules/product";
 import {useCart} from "@/modules/cart";
@@ -352,20 +359,33 @@ export function ProductsCart({
       >
         <ScrollArea className="flex-grow overflow-y-auto px-4">
           <div className="relative h-64 w-full pt-4">
-            <img
-              alt=""
-              className="m-auto h-full w-full max-w-64 object-cover"
-              src={product?.image}
-            />
-            <img
-              alt=""
-              className="absolute top-4 -z-10 h-full max-h-60 w-full opacity-45 blur-[2px]"
-              src={product?.image}
-            />
+            {product?.image ? (
+              <>
+                <img
+                  alt=""
+                  className="m-auto h-full w-full max-w-64 object-cover"
+                  src={product?.image}
+                />
+                <img
+                  alt=""
+                  className="absolute top-4 -z-10 h-full max-h-60 w-full opacity-45 blur-[2px]"
+                  src={product?.image}
+                />
+              </>
+            ) : (
+              <div className="flex aspect-square h-[240px] w-full items-center justify-center overflow-hidden rounded-md bg-[#460315]">
+                <p
+                  className="select-none font-bleedingCowboys text-9xl text-[#ff9a21]"
+                  style={{textShadow: "black 10px 0 10px"}}
+                >
+                  ?
+                </p>
+              </div>
+            )}
           </div>
-          <SheetHeader className="flex flex-col items-center py-4 ">
+          <SheetHeader className="flex flex-col items-center px-4 py-4">
             <SheetTitle className="w-full text-left text-2xl">{product?.name}</SheetTitle>
-            <SheetDescription className="text-left">{product?.description}</SheetDescription>
+            <SheetDescription className="w-full text-left">{product?.description}</SheetDescription>
           </SheetHeader>
           <div className="px-4">
             <Separator />
@@ -375,6 +395,7 @@ export function ProductsCart({
               Pan={defaultPan}
               allIngredients={ingredients}
               className="flex flex-col gap-4"
+              defaultIngredientQuantity={defaultIngredients}
               ingredients={product?.productIngredients ?? []}
               itemClassName="px-2"
               product={product!}
@@ -444,6 +465,7 @@ type IngredientsDrawerProps = {
   allIngredients: Ingredient[];
   className?: string;
   itemClassName?: string;
+  defaultIngredientQuantity: {name: string; defaultQuantity: number}[];
   onChange?: (evt: OnChangeIngredientType) => void;
 };
 
@@ -511,6 +533,7 @@ function SubproductsDrawer({
 function IngredientsDrawer({
   product,
   ingredients,
+  defaultIngredientQuantity,
   Pan,
   allIngredients,
   className,
@@ -548,6 +571,7 @@ function IngredientsDrawer({
                     key={`${ingredient.name}-${ingredient.type}`}
                     Pan={Pan!}
                     className={itemClassName}
+                    defaultIngredientQuantity={defaultIngredientQuantity}
                     ingredient={ingredient}
                     product={product}
                     source={source}
@@ -580,6 +604,7 @@ type IngredientDrawerProps = {
   source: Ingredient[];
   onChange?: (evt: OnChangeIngredientType) => void;
   className?: string;
+  defaultIngredientQuantity: {name: string; defaultQuantity: number}[];
 };
 
 function ImageWithBlurBackground({src, alt}: {src: string; alt: string}) {
@@ -608,11 +633,13 @@ function IngredientDrawer({
   source,
   type,
   className,
+  defaultIngredientQuantity,
   onChange = () => {},
 }: IngredientDrawerProps) {
   const ingredientFromProduct = product.productIngredients.find(
     (item) => item.name === ingredient.name,
   );
+  const defaultIngredient = defaultIngredientQuantity.find((ing) => ing.name === ingredient.name);
 
   if (type === "Aderezo") {
     return (
@@ -620,6 +647,7 @@ function IngredientDrawer({
         key={ingredient.name}
         className={cn(className, "h-7 items-center p-0 ")}
         ingredient={ingredient}
+        showPrice={defaultIngredient!.defaultQuantity === 0}
         onChange={(value) => onChange({ingredient, changeType: "checkbox", value})}
       />
     );
@@ -674,6 +702,7 @@ function IngredientDrawer({
         <CheckboxIngredient
           className={cn(className, "h-7 items-center p-0")}
           ingredient={ingredient}
+          showPrice={defaultIngredient!.defaultQuantity === 0}
           onChange={(value) => onChange({ingredient, changeType: "checkbox", value})}
         />
       );
@@ -763,11 +792,17 @@ function SelectIngredient({
 
 type CheckboxIngredientProps = {
   ingredient: Ingredient;
+  showPrice: boolean;
   className?: string;
   onChange?: (value: number) => void;
 };
 
-function CheckboxIngredient({ingredient, className, onChange = () => {}}: CheckboxIngredientProps) {
+function CheckboxIngredient({
+  ingredient,
+  showPrice,
+  className,
+  onChange = () => {},
+}: CheckboxIngredientProps) {
   const [isChecked, setIsChecked] = useState<boolean>(ingredient.quantity === 1 ? true : false);
 
   function handleOnChange(checked: boolean) {
@@ -776,14 +811,19 @@ function CheckboxIngredient({ingredient, className, onChange = () => {}}: Checkb
   }
 
   return (
-    <div className={cn("flex space-x-3", className)}>
-      <Checkbox
-        checked={isChecked}
-        className="self-center"
-        id={ingredient.name}
-        onCheckedChange={handleOnChange}
-      />
-      <label htmlFor={ingredient.name}>{ingredient.name}</label>
+    <div className={cn("flex w-full items-center justify-between space-x-2 space-y-0", className)}>
+      <div className="flex space-x-3">
+        <Checkbox
+          checked={isChecked}
+          className="self-center"
+          id={ingredient.name}
+          onCheckedChange={handleOnChange}
+        />
+        <label htmlFor={ingredient.name}>{ingredient.name}</label>
+      </div>
+      {showPrice ? (
+        <span className={cn(className, "p-0 text-muted-foreground")}>+ ${ingredient.price}</span>
+      ) : null}
     </div>
   );
 }
