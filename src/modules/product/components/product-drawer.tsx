@@ -29,7 +29,7 @@ export function ProductDrawer({product, onClick, className}: ProductDrawerProps)
           src={product.image}
         />
       ) : (
-        <div className="flex aspect-square h-[166px] w-[166px] items-center justify-center overflow-hidden rounded-md bg-[#460315]">
+        <div className="flex aspect-square h-[166px] w-[166px] items-center justify-center rounded-md bg-[#460315]">
           <p
             className="select-none font-bleedingCowboys text-8xl text-[#ff9a21]"
             style={{textShadow: "black 10px 0 10px"}}
