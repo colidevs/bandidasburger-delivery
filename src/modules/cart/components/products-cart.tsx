@@ -607,25 +607,6 @@ type IngredientDrawerProps = {
   defaultIngredientQuantity: {name: string; defaultQuantity: number}[];
 };
 
-function ImageWithBlurBackground({src, alt}: {src: string; alt: string}) {
-  return (
-    <div className="aspect-w-16 aspect-h-9 relative w-full">
-      <div className="absolute inset-0 h-full w-full">
-        <img
-          alt={`${alt} blurred background`}
-          className="h-full w-full object-cover blur-xl"
-          src={src}
-        />
-      </div>
-
-      {/* Imagen principal */}
-      <div className="absolute inset-0 h-full w-full">
-        <img alt={alt} className="h-full w-full object-contain" src={src} />
-      </div>
-    </div>
-  );
-}
-
 function IngredientDrawer({
   product,
   Pan,
