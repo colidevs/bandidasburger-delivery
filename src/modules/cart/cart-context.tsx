@@ -22,6 +22,7 @@ import {Separator} from "@/components/ui/separator";
 import {Input} from "@/components/ui/input";
 import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";
 import {Label} from "@/components/ui/label";
+import {Checkbox} from "@/components/ui/checkbox";
 
 interface OrderDetails {
   paymentMethod: "Efectivo" | "MercadoPago";
@@ -273,6 +274,41 @@ export function CartProviderClient({
   const [paymentMethod, setPaymentMethod] = useState<"Efectivo" | "MercadoPago">("MercadoPago");
   const [cashAmount, setCashAmount] = useState(0);
   const [customerName, setCustomerName] = useState("");
+  const isEnvioAvailable = store.shippingType.includes("envio");
+  const isTakeAwayAvailable = store.shippingType.includes("take-away");
+
+  const [isShipping, setIsShipping] = useState(() => {
+    if (isEnvioAvailable && isTakeAwayAvailable) {
+      return true;
+    } else if (isEnvioAvailable && !isTakeAwayAvailable) {
+      return true;
+    }
+
+    return false;
+  });
+
+  const [isChecked, setIsChecked] = useState(() => {
+    if (isEnvioAvailable && isTakeAwayAvailable) {
+      return true;
+    } else if (isEnvioAvailable && !isTakeAwayAvailable) {
+      return true;
+    }
+
+    return false;
+  });
+
+  const handleCheckboxChange = (checked: boolean) => {
+    if (isEnvioAvailable && isTakeAwayAvailable) {
+      setIsChecked(checked);
+      setIsShipping(checked);
+    } else if (isEnvioAvailable && !isTakeAwayAvailable) {
+      setIsChecked(true);
+      setIsShipping(true);
+    } else if (!isEnvioAvailable && isTakeAwayAvailable) {
+      setIsChecked(false);
+      setIsShipping(false);
+    }
+  };
 
   function Checkout() {
     const msg = generateWhatsAppOrderMessage(cartList, {
@@ -346,16 +382,27 @@ export function CartProviderClient({
                     </div>
                   </RadioGroup>
 
+                  <div className="flex items-center">
+                    <Checkbox
+                      checked={isChecked}
+                      className="mr-2"
+                      disabled={!isEnvioAvailable || !isTakeAwayAvailable}
+                      onCheckedChange={handleCheckboxChange}
+                    />
+                    Envio a domicilio
+                  </div>
+                  {isShipping ? (
+                    <Input
+                      id="address"
+                      placeholder="Dirección"
+                      type="text"
+                      onChange={(e) => setAddress(e.target.value)}
+                    />
+                  ) : null}
                   <Input
                     placeholder="Nombre"
                     type="text"
                     onChange={(e) => setCustomerName(e.target.value)}
-                  />
-                  <Input
-                    id="address"
-                    placeholder="Direccion"
-                    type="text"
-                    onChange={(e) => setAddress(e.target.value)}
                   />
                   <Input
                     placeholder="Con cuanto abonas?"

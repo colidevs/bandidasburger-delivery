@@ -9,4 +9,6 @@ export const STORE: Store = {
   whatsapp: "https://wa.me/5491124090196",
   phone: "M - 5491124090196",
   shipping: 350,
+  location: "",
+  shippingType: [],
 };
