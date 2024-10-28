@@ -39,7 +39,7 @@ export default async function RootLayout({children}: {children: React.ReactNode}
                 LAS MAS RICAS DE ZONA SUR
               </p>
             </div>
-            <div className="flex flex-col items-center gap-2 sm:flex-row sm:items-start lg:ml-16">
+            <div className="flex flex-col items-center gap-2 sm:flex-row sm:items-start">
               <div className="-mt-12 rounded-full sm:-mt-14 lg:-mt-16">
                 <img
                   alt="Avatar de Bandidas Burger"
