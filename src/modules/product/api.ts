@@ -144,12 +144,15 @@ export default {
           customDescription: row["descripcion personalizada"] || "",
           image: row.imagen,
           subproduct: subproduct,
-          price,
+          price:
+            price -
+            (price * parseInt(row.descuento ? row.descuento.replace(/[%,]/g, "") : "0")) / 100,
+          discount: parseInt(row.descuento ? row.descuento.replace(/[%,]/g, "") : "0"),
           active: isActive,
           productIngredients: productIngredients,
         };
 
-        console.log(product.image);
+        console.log(product);
 
         return product;
       })
