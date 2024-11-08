@@ -10,6 +10,7 @@ export interface Product {
   image: string;
   subproduct?: Subproduct;
   price: number;
+  discount: number;
   active: boolean;
   productIngredients: Ingredient[];
 }
@@ -22,6 +23,7 @@ export interface CsvProduct {
   imagen: string;
   subproducto?: string;
   precio: string;
+  descuento: string;
   activo: string;
   productIngredients: {
     ingrediente: string;
