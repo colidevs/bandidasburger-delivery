@@ -682,7 +682,7 @@ function IngredientDrawer({
           <div className="flex w-full justify-between">
             <span className={cn(className, "p-0")}>{ingredient.name}</span>
             <span className={cn(className, "p-0 text-muted-foreground")}>
-              + ${ingredient.price}
+              + ${ingredient.price} c/u
             </span>
           </div>
           <Counter
