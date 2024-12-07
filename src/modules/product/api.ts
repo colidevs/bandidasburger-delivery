@@ -152,8 +152,6 @@ export default {
           productIngredients: productIngredients,
         };
 
-        console.log(product);
-
         return product;
       })
       .filter((p) => p.active);

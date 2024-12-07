@@ -3,7 +3,7 @@
 import type {Cart, CartItem} from "./types";
 
 import {createContext, useCallback, useContext, useMemo, useState} from "react";
-import {IndentDecrease, MinusCircle, MinusSquare, PlusCircle, PlusSquare} from "lucide-react";
+import {MinusCircle, PlusCircle} from "lucide-react";
 
 import {type Store} from "../store";
 import {Product} from "../product";
@@ -173,77 +173,45 @@ export function CartProviderClient({
     cartItems.forEach(([_id, item]) => {
       const {name, quantity, price, productIngredients, subproduct} = item;
 
-      let description = `- ${quantity} ${name}`;
-
-      console.log(productIngredients);
-      // Agregar detalles de personalización si los hay
-      const customizations = productIngredients
+      // Construir modificaciones
+      const modifications = productIngredients
         .filter(
           (ing) =>
-            ing.quantity! - ing.deletedQuantity! + ing.additionalQuantity! > 0 &&
-            !ing.name.toLowerCase().includes("pan"),
+            ing.additionalQuantity! !== 0 ||
+            ing.deletedQuantity! !== 0 ||
+            (!ing.isSelected && !ing.required),
         )
         .map((ing) => {
-          if (ing.quantity! === 0 && ing.additionalQuantity! > 0) {
-            if (ing.additionalQuantity! === 1) {
-              if (ing.max > 1) {
-                return `1 ${ing.name}`;
-              }
-
-              return `${ing.name}`;
-            }
-
-            return `${ing.quantity! + ing.additionalQuantity!} ${ing.name}`;
-          } else if (ing.additionalQuantity! > 0) {
-            return `${ing.quantity! + ing.additionalQuantity!} ${ing.name}`;
-          } else if (ing.deletedQuantity! > 0) {
-            return `${ing.quantity! - ing.deletedQuantity!} ${ing.name}`;
-          } else {
-            if (ing.quantity === 1) {
-              return `${ing.name}`;
-            } else {
-              return `${ing.quantity} ${ing.name}`;
-            }
+          if (ing.additionalQuantity! > 0) {
+            return `+${ing.additionalQuantity} ${ing.name}`;
+          }
+          if (ing.deletedQuantity! > 0 || !ing.isSelected) {
+            return `sin ${ing.name}`;
           }
 
           return null;
         })
-        .filter((detail) => detail !== null);
+        .filter((mod) => mod !== null);
 
-      // Manejo especial para el pan seleccionado
-      const selectedPan = productIngredients.find((ing) => ing.type === "Pan" && ing.isSelected);
+      // Construir descripción de la hamburguesa
+      let description = `- ${quantity} ${name}:`;
 
-      if (selectedPan && selectedPan.name) {
-        customizations.push(`${selectedPan.name}`);
+      // if (ingredientsDescription) {
+      //   description += ` : ${ingredientsDescription}`;
+      // }
+
+      if (modifications.length > 0) {
+        description += `\n[Modificaciones: ${modifications.join(", ")}]`;
       }
 
-      if (customizations.length > 0) {
-        description += ` : ${customizations.join(", ")}`;
-      }
-
-      // Añadir ingredientes que se han eliminado
-      const nonIng = productIngredients
-        .filter(
-          (ing) =>
-            (ing.quantity === 0 &&
-              ing.additionalQuantity === 0 &&
-              ing.deletedQuantity! > 0 &&
-              !ing.isSelected &&
-              !ing.required &&
-              ing.name) ||
-            (ing.quantity! - ing.deletedQuantity! <= 0 && ing.deletedQuantity! > 0),
-        )
-        .map((ing) => ing.name);
-
-      if (nonIng.length > 0) {
-        description += ` (sin ${nonIng.join(", ")})`;
-      }
-
+      // Agregar la guarnición
       if (subproduct) {
-        description += `\n[Guarnicion: ${subproduct.name}]`;
+        description += `\n[Guarnición: ${subproduct.name}]`;
       }
 
+      // Añadir el precio final
       description += ` > $${price * quantity}`;
+
       message += `${description}\n\n`;
     });
 
@@ -251,21 +219,9 @@ export function CartProviderClient({
     message += `}\n\n*Datos:*\n`;
     message += `Forma de pago: ${orderDetails.paymentMethod}\n`;
     message += `Dirección de envío: ${orderDetails.address || "No especificada"}\n`;
-
-    if (orderDetails.paymentMethod.toLowerCase() === "efectivo") {
-      message += `Con cuánto abonás: $${orderDetails.cashAmount || "No especificado"}\n`;
-    }
-
     message += `Pedido a nombre de: ${orderDetails.customerName || "No especificado"}\n`;
 
-    message += `\n`;
-    message += `*Total (incluye envío): $${orderDetails.totalAmount}*\n`;
-
-    if (orderDetails.paymentMethod.toLowerCase() === "efectivo") {
-      const change = orderDetails.cashAmount - orderDetails.totalAmount;
-
-      message += `Vuelto: $${change > 0 ? change : 0}\n`;
-    }
+    message += `\n*Total (incluye envío): $${orderDetails.totalAmount}*\n`;
 
     return message;
   }

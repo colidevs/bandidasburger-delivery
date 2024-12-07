@@ -35,8 +35,6 @@ export default {
             const csvStore = results.data[0] as CsvStore; // Utilizamos el tipo CsvStore
             const store = convertCsvStoreToStore(csvStore); // Convertimos a IStore
 
-            console.log(store);
-
             resolve(store); // Retornamos el objeto convertido a IStore
           },
           error: (error: Error) => {

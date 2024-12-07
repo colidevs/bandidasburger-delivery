@@ -588,13 +588,7 @@ function IngredientsDrawer({
   );
 }
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import {Select, SelectContent, SelectItem, SelectTrigger} from "@/components/ui/select";
 
 type IngredientDrawerProps = {
   product: Product;
@@ -678,6 +672,30 @@ function IngredientDrawer({
   }
 
   if (type === "Topping") {
+    if (ingredient.name.toLowerCase().includes("feta")) {
+      // Redondear la cantidad inicial a un número par si es impar
+      const adjustedQuantity =
+        ingredient.quantity! % 2 === 0 ? ingredient.quantity : ingredient.quantity! + 1;
+
+      return (
+        <div className="flex w-full items-center justify-between space-x-2 space-y-0">
+          <div className="flex w-full justify-between">
+            <span className={cn(className, "p-0")}>{ingredient.name}</span>
+            <span className={cn(className, "p-0 text-muted-foreground")}>
+              + ${ingredient.price}
+            </span>
+          </div>
+          <Counter
+            className="w-fit"
+            disabled={(value) => value === 0}
+            disabledMax={(value) => value === ingredient.max}
+            step={2} // Paso de 2 para feta
+            value={adjustedQuantity}
+            onChange={(value) => onChange({ingredient, changeType: "counter", value})}
+          />
+        </div>
+      );
+    }
     if (ingredient.max <= 1) {
       return (
         <CheckboxIngredient
@@ -812,6 +830,7 @@ function CheckboxIngredient({
 export type CounterProps = {
   onChange?: (value: number) => void;
   value?: number;
+  step?: number;
   disabled?: (value: number) => boolean;
   disabledMax?: (value: number) => boolean;
   className?: string;
@@ -821,6 +840,7 @@ export type CounterProps = {
 function Counter({
   onChange = () => {},
   value = 1,
+  step = 1,
   disabled = (value) => value === 1,
   disabledMax = (value) => value >= 10,
   className,
@@ -847,7 +867,7 @@ function Counter({
           disabled={disabled(count)}
           size="icon"
           variant="ghost"
-          onClick={() => handleSetCustomQuantity((x) => x - 1)}
+          onClick={() => handleSetCustomQuantity((x) => x - step)}
         >
           <MinusCircle className="m-0 p-0" />
         </Button>
@@ -859,7 +879,7 @@ function Counter({
           disabled={disabledMax(count)}
           size="icon"
           variant="ghost"
-          onClick={() => handleSetCustomQuantity((x) => x + 1)}
+          onClick={() => handleSetCustomQuantity((x) => x + step)}
         >
           <PlusCircle className="m-0 p-0" />
         </Button>
