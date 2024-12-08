@@ -164,6 +164,17 @@ export function CartProviderClient({
     [addItem, removeItem, updateItem],
   );
 
+  function isPanDifferent(item: CartItem, defaultProducts: Product[]): boolean {
+    const defaultProduct = defaultProducts.find((prod) => prod.name === item.name);
+
+    if (!defaultProduct) return false;
+
+    const defaultPan = defaultProduct.productIngredients.find((ing) => ing.type === "Pan");
+    const currentPan = item.productIngredients.find((ing) => ing.type === "Pan");
+
+    return defaultPan?.name !== currentPan?.name;
+  }
+
   function generateWhatsAppOrderMessage(
     cartItems: [string, CartItem][],
     orderDetails: OrderDetails,
@@ -172,6 +183,8 @@ export function CartProviderClient({
 
     cartItems.forEach(([_id, item]) => {
       const {name, quantity, price, productIngredients, subproduct} = item;
+
+      const pan = productIngredients.find((ing) => ing.type === "Pan");
 
       // Construir modificaciones
       const modifications = productIngredients
@@ -192,6 +205,10 @@ export function CartProviderClient({
           return null;
         })
         .filter((mod) => mod !== null);
+
+      if (isPanDifferent(item, defaultProducts) && pan) {
+        modifications.push(`${pan.name}`);
+      }
 
       // Construir descripción de la hamburguesa
       let description = `- ${quantity} ${name}:`;
